@@ -19,7 +19,7 @@ var (
 type Node struct {
     ID          int
     addr        string
-    mem_list    []Node
+    mem_list    map[int]string
     active_mem  map[int]bool
     conn_list   map[int]net.Conn
 }
@@ -27,7 +27,7 @@ type Node struct {
 type Message struct {
     Kind        string  // "INVITE", PUBLIC"
     Msg         string
-    Mem_list    []Node
+    Mem_list    map[int]string 
     //QUIT          bool   
 }
 
@@ -38,18 +38,20 @@ func (node *Node) delNode(id int) {
 
 
 //add Peer to the network
-func (node *Node) joinGroup(mem_list []Node){
-    for _, peer := range mem_list{
+func (node *Node) joinGroup(mem_list map[int]string){
+    for id, peer := range mem_list{
         //connect to the peer
-        conn := node.connectPeer(peer.addr)
+        conn := node.connectPeer(peer)
         //append peer node to the mem_list
-        node.mem_list = append(node.mem_list, peer)
+        node.mem_list[id] = peer
         //set active mem map with id = true
-        node.active_mem[peer.ID] = true
+        node.active_mem[id] = true
         //store connection in a map
-        node.conn_list[peer.ID] = conn
+        node.conn_list[id] = conn
     }
-    fmt.Println(node.mem_list)
+    arg := "Invitation accepted by: " + node.addr
+    msg := createMessage("PUBLIC", arg, node.mem_list) 
+    go node.sendToAll(msg)
 }
 
 func (node *Node) isAlive(id int) bool {
@@ -61,18 +63,18 @@ func (node *Node) isAlive(id int) bool {
 func (node *Node) server(nonstop chan bool){
     tcpAddr, err := net.ResolveTCPAddr("tcp4", node.addr)
     if err != nil{
-        fmt.Println("Err getting TCP.")
+        fmt.Println(err)
     }
     
     listener, err2 := net.ListenTCP("tcp", tcpAddr)
     if err2 != nil{
-        fmt.Println("Err start listening.")
+        fmt.Println(err2)
     }
     
     for {
-        conn, err := listener.Accept()
-        if err != nil {
-            continue
+        conn, err3 := listener.Accept()
+        if err3 != nil {
+		fmt.Println(err3)
         }
 
         go node.handleMsg(conn)
@@ -83,16 +85,23 @@ func (node *Node) server(nonstop chan bool){
 //function to handle message
 func (node *Node) handleMsg(conn net.Conn){
     dec := json.NewDecoder(conn)
-    msg:= new(Message)
+    msg := new(Message)
     defer conn.Close()
     for {
         if err := dec.Decode(msg); err != nil {
-            return
+		fmt.Println(err)
         }
         switch msg.Kind {
             case "INVITE":
                 node.joinGroup(msg.Mem_list)
             case "PUBLIC":
+		for id, addr := range msg.Mem_list{
+		    if _, isIn := node.mem_list[id]; !isIn {
+			node.mem_list[id] = addr
+			node.active_mem[id] = true
+			node.conn_list[id] = node.connectPeer(addr)
+		    }
+		}
                 fmt.Println(msg.Msg)
         }
     }
@@ -102,12 +111,12 @@ func (node *Node) handleMsg(conn net.Conn){
 func (node *Node) connectPeer(addr string) net.Conn{
     tcpAddr, err := net.ResolveTCPAddr("tcp", addr)
     if err != nil{
-        fmt.Println("Err getting addr.")
+        fmt.Println(err)
     }
     
     conn, err2 := net.DialTCP("tcp", nil, tcpAddr)
     if err2 != nil{
-        fmt.Println("Err connection addr.")
+        fmt.Println(err2)
     }
     return conn 
 }
@@ -132,21 +141,20 @@ func main() {
     nonstop := make(chan bool)
     var (
         node Node
-        memlist []Node
     )
     flag.IntVar(&node.ID, "id", 0, "specify the node id")
     flag.StringVar(&node.addr, "addr", "127.0.0.1:8080", "specify the node address")
     flag.Parse()
     node.active_mem = make(map[int]bool)
     node.conn_list = make(map[int]net.Conn)
-    memlist = append(memlist, node)
-    node.mem_list = memlist
+    node.mem_list = make(map[int]string) 
+    node.mem_list[node.ID] = node.addr
     go node.server(nonstop)
     go node.userInput(nonstop)
     <- nonstop
 }
 
-func createMessage(Kind string, Msg string, Mem_list []Node) Message {
+func createMessage(Kind string, Msg string, Mem_list map[int]string) Message {
     var msg Message
     msg.Kind = Kind
     msg.Msg = Msg
@@ -165,7 +173,7 @@ func (node *Node) userInput(nonstop chan bool) {
             case "invite":
                 go node.invite(input[1])
             case "send":
-                msg := createMessage("PUBLIC", input[1], make([]Node,0))
+                msg := createMessage("PUBLIC", input[1], node.mem_list)
                 go node.sendToAll(msg)
         }
     }
