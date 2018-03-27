@@ -58,29 +58,30 @@ func (n *Node) server(done chan bool){
 
 //function to handle message
 func (n *Node) handleMsg(conn net.Conn){
+	var msg Message
     dec := json.NewDecoder(conn)
-    msg := new(Message)
     defer conn.Close()
     for {
-        if err := dec.Decode(msg); err != nil {
+        if err := dec.Decode(&msg); err != nil {
             fmt.Println(err)
         }
+		fmt.Println(msg)
         switch msg.Kind {
             case INVITE:
-                n.tag.time_stamp = msg.tag.time_stamp
-                n.log = initLog(msg.tag.time_stamp)
-                n.joinGroup(msg.mem_list)
+                n.tag.time_stamp = msg.Tagval.time_stamp
+                n.log = initLog(msg.Tagval.time_stamp)
+                n.joinGroup(msg.Mem_list)
             case PUBLIC:
-                n.checkPeers(msg.mem_list)
-                n.updateTag(msg.tag)
-                fmt.Println(msg.ety.msg)
+                n.checkPeers(msg.Mem_list)
+                //n.updateTag(msg.Tagval)
+                fmt.Println(msg.Ety.Msg)
             case HEARTBEAT:
-                n.checkPeers(msg.mem_list)
-                n.updateTag(msg.tag)
+                n.checkPeers(msg.Mem_list)
+                n.updateTag(msg.Tagval)
             case ACCEPT:
                 continue
             case DECLINE:
-                n.updateTag(msg.tag)
+                n.updateTag(msg.Tagval)
         }
     }
 }
@@ -98,10 +99,16 @@ func (n *Node) checkPeers(memlist map[int]string) {
 
 //add Peer to the network
 func (n *Node) joinGroup(mem_list map[int]string){
-    n.checkPeers(mem_list)
+	for id, addr := range mem_list{
+		fmt.Println(addr)
+		n.mem_list[id] = addr
+		n.active_mem[id] = true
+		n.conn_list[id] = n.connectPeer(addr)
+	}
+    //n.checkPeers(mem_list)
     arg := "Invitation accepted by: " + n.addr
     msg := n.createMessage(PUBLIC, arg, n.mem_list) 
-    go n.sendToAll(msg)
+    n.sendToAll(msg)
 }
 
 // create a connection to peer (string destination address)
@@ -117,22 +124,17 @@ func (node *Node) connectPeer(addr string) net.Conn{
     return conn 
 }
 
-// Send messages to everyone in the group
-func send(conn net.Conn, msg Message) {
-    enc := json.NewEncoder(conn)
-    enc.Encode(msg)
-}
-
 // send invitation to new peer (string destination address)
 func (n *Node) invite(dest string) {
     inv := n.createMessage(INVITE, "", n.mem_list)
-    send(n.connectPeer(dest), inv)
+	conn := n.connectPeer(dest)
+	json.NewEncoder(conn).Encode(inv)
 }
 
 // Send messages to everyone in the group
 func (n *Node) sendToAll(msg Message) {
     for _,conn := range n.conn_list {
-        send(conn, msg)
+	json.NewEncoder(conn).Encode(msg)
     }
 }
 

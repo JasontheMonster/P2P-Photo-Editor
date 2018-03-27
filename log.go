@@ -7,8 +7,8 @@ package main
 // )
 
 type Entry struct {
-	time_stamp	int
-	msg			string
+	Time_stamp	int
+	Msg			string
 }
 
 type Log struct {
@@ -22,6 +22,6 @@ func initLog(ts int) Log {
 }
 
 func (l *Log)append(ety Entry){
-	l.time_stamp = ety.time_stamp
+	l.time_stamp = ety.Time_stamp
 	l.entries = append(l.entries, ety)
 }

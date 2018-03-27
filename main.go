@@ -25,8 +25,8 @@ func main() {
     node.mem_list[node.ID] = node.addr
     go node.server(done)
     go node.userInput(done)
-    go node.heartbeat(done)
-    for i := 0; i < 3; i++{
+    //go node.heartbeat(done)
+    for i := 0; i < 2; i++{
         <- done
     }
 }

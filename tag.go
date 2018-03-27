@@ -1,10 +1,11 @@
 package main
 
-// import (
+import (
+	"encoding/json"
 // 	"math"
 // 	"log"
 // 	"time"
-// )
+)
 
 type Tag struct {
 	id			int			
@@ -32,22 +33,22 @@ func (n *Node) updateTag(tag Tag) {
 	} else {
 		msg = n.createMessage(DECLINE, "i am newer", make(map[int]string))
 	}
-	send(n.conn_list[tag.id], msg)
+		json.NewEncoder(n.conn_list[tag.id]).Encode(msg)
 }
 
 type Message struct {
     Kind        int  // INVITE, PUBLIC, HEARTBEAT
-    ety         Entry
-    tag 		Tag
-    mem_list    map[int]string 
+    Ety         Entry
+    Tagval 		Tag
+    Mem_list    map[int]string 
     //QUIT          bool   
 }
 
 func (n *Node) createMessage(Kind int, info string, mem_list map[int]string) Message {
     var msg Message
     msg.Kind = Kind
-    msg.ety = Entry{time_stamp: n.tag.time_stamp, msg: info}
-    msg.tag = createTag(n.ID, n.tag.time_stamp)
-    msg.mem_list = mem_list
+    msg.Ety = Entry{Time_stamp: n.tag.time_stamp, Msg: info}
+    msg.Tagval = createTag(n.ID, n.tag.time_stamp)
+    msg.Mem_list = mem_list
     return msg
 }
