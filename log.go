@@ -1,14 +1,14 @@
-package photoEditor
+package main
 
-import (
-	"math"
-	"log"
-	"time"
-)
+// import (
+// 	"math"
+// 	"log"
+// 	"time"
+// )
 
 type Entry struct {
 	time_stamp	int
-	log_entry	string
+	msg			string
 }
 
 type Log struct {
@@ -16,6 +16,12 @@ type Log struct {
 	entries		[]Entry
 }
 
-func (l *Log)append(log_entry string){
-	
+func initLog(ts int) Log {
+	var ety []Entry
+	return Log{time_stamp: ts, entries: ety}
+}
+
+func (l *Log)append(ety Entry){
+	l.time_stamp = ety.time_stamp
+	l.entries = append(l.entries, ety)
 }
