@@ -8,21 +8,21 @@ import (
 )
 
 type Tag struct {
-	id			int			
-	time_stamp	int
+	Id			int			
+	Time_stamp	int
 }
 
 func createTag(id int, ts int) Tag {
-	return Tag{id: id, time_stamp: ts}
+	return Tag{Id: id, Time_stamp: ts}
 }
 
 func (this *Tag) smaller(other Tag) bool {
-	if this.time_stamp < other.time_stamp {
+	if this.Time_stamp < other.Time_stamp {
 		return true
-	} else if this.time_stamp > other.time_stamp {
+	} else if this.Time_stamp > other.Time_stamp {
 		return false
 	} else {
-		return this.id < other.id
+		return this.Id < other.Id
 	}
 }
 
@@ -33,7 +33,7 @@ func (n *Node) updateTag(tag Tag) {
 	} else {
 		msg = n.createMessage(DECLINE, "i am newer", make(map[int]string))
 	}
-		json.NewEncoder(n.conn_list[tag.id]).Encode(msg)
+		json.NewEncoder(n.conn_list[tag.Id]).Encode(msg)
 }
 
 type Message struct {
@@ -47,8 +47,8 @@ type Message struct {
 func (n *Node) createMessage(Kind int, info string, mem_list map[int]string) Message {
     var msg Message
     msg.Kind = Kind
-    msg.Ety = Entry{Time_stamp: n.tag.time_stamp, Msg: info}
-    msg.Tagval = createTag(n.ID, n.tag.time_stamp)
+    msg.Ety = Entry{Time_stamp: n.tag.Time_stamp, Msg: info}
+    msg.Tagval = createTag(n.ID, n.tag.Time_stamp)
     msg.Mem_list = mem_list
     return msg
 }

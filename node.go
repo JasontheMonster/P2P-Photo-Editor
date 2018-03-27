@@ -65,19 +65,20 @@ func (n *Node) handleMsg(conn net.Conn){
         if err := dec.Decode(&msg); err != nil {
             fmt.Println(err)
         }
-		fmt.Println(msg)
+		//fmt.Println(msg)
         switch msg.Kind {
             case INVITE:
-                n.tag.time_stamp = msg.Tagval.time_stamp
-                n.log = initLog(msg.Tagval.time_stamp)
+                n.tag.Time_stamp = msg.Tagval.Time_stamp
+                n.log = initLog(msg.Tagval.Time_stamp)
                 n.joinGroup(msg.Mem_list)
             case PUBLIC:
                 n.checkPeers(msg.Mem_list)
-                //n.updateTag(msg.Tagval)
+                n.updateTag(msg.Tagval)
                 fmt.Println(msg.Ety.Msg)
             case HEARTBEAT:
                 n.checkPeers(msg.Mem_list)
                 n.updateTag(msg.Tagval)
+                //fmt.Println("heartbeat", msg.Mem_list)
             case ACCEPT:
                 continue
             case DECLINE:

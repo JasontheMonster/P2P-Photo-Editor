@@ -16,6 +16,7 @@ type Log struct {
 	entries		[]Entry
 }
 
+//initialize log 
 func initLog(ts int) Log {
 	var ety []Entry
 	return Log{time_stamp: ts, entries: ety}
