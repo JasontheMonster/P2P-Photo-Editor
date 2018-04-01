@@ -1,14 +1,8 @@
 package main
 
-// import (
-// 	"math"
-// 	"log"
-// 	"time"
-// )
-
 type Entry struct {
-	Time_stamp	int
-	Msg			string
+	Time_stamp	int 	`json:"time_stamp"`
+	Msg			string 	`json:"msg"`
 }
 
 type Log struct {

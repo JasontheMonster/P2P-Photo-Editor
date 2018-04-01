@@ -3,7 +3,6 @@ package main
 import (
 	"sync"
 	"flag"
-	"net"
 )
 
 var (
@@ -23,7 +22,6 @@ func main() {
     node.log = initLog(0)
     //initialize membership list and connection list
     node.active_mem = make(map[int]bool)
-    node.conn_list = make(map[int]net.Conn)
     node.mem_list = make(map[int]string) 
     //put itself in the list
     node.mem_list[node.ID] = node.addr
@@ -32,8 +30,8 @@ func main() {
     go node.server(done)
     //user input thread
     go node.userInput(done)
-    go node.heartbeat(done)
-    for i := 0; i < 3; i++{
+    // go node.heartbeat(done)
+    for i := 0; i < 2; i++{
         <- done
     }
 }

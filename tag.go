@@ -1,49 +1,49 @@
 package main
 
 import (
-	"encoding/json"
-// 	"math"
-// 	"log"
-// 	"time"
+	"fmt"
 )
 
 type Tag struct {
-	Id			int			
-	Time_stamp	int
+	Id			int		`json:"id"`
+	Time_stamp	int 	`json:"time_stamp"`
 }
 
 func createTag(id int, ts int) Tag {
 	return Tag{Id: id, Time_stamp: ts}
 }
 
-func (this *Tag) smaller(other Tag) bool {
-	if this.Time_stamp < other.Time_stamp {
-		return true
-	} else if this.Time_stamp > other.Time_stamp {
-		return false
+func (this *Tag) compareTo(other Tag) int {
+	if this.Time_stamp != other.Time_stamp {
+		return this.Time_stamp - other.Time_stamp
 	} else {
-		return this.Id < other.Id
+		return this.Id - other.Id
 	}
 }
 
 func (n *Node) updateTag(tag Tag) {
 	var msg Message
-	if n.tag.smaller(tag) {
+    tmp := n.tag.compareTo(tag)
+	if tmp < 0 {
 		msg = n.createMessage(ACCEPT, "i need update", make(map[int]string))
-	} else {
+	} else if tmp > 0 {
 		msg = n.createMessage(DECLINE, "i am newer", make(map[int]string))
-	}
-		json.NewEncoder(n.conn_list[tag.Id]).Encode(msg)
+	} else {
+        msg = n.createMessage(ACCEPT, "up to date", make(map[int]string))
+    }
+	send(n.mem_list[tag.Id], msg)
 }
 
 type Message struct {
-    Kind        int  // INVITE, PUBLIC, HEARTBEAT
-    Ety         Entry
-    Tagval 		Tag
-    Mem_list    map[int]string 
+	// INVITE, PUBLIC, HEARTBEAT
+    Kind        int 			`json:"kind"`
+    Ety         Entry 			`json:"ety"`
+    Tagval 		Tag 			`json:"tagval"`
+    Mem_list    map[int]string 	`json:"mem_list"`
     //QUIT          bool   
 }
 
+// function to create message
 func (n *Node) createMessage(Kind int, info string, mem_list map[int]string) Message {
     var msg Message
     msg.Kind = Kind
@@ -51,4 +51,27 @@ func (n *Node) createMessage(Kind int, info string, mem_list map[int]string) Mes
     msg.Tagval = createTag(n.ID, n.tag.Time_stamp)
     msg.Mem_list = mem_list
     return msg
+}
+
+//function to handle message
+func (n *Node) handleMsg(msg Message){
+    // fmt.Println(msg)
+    switch msg.Kind {
+    	case INVITE:
+            n.tag.Time_stamp = msg.Tagval.Time_stamp
+            n.log = initLog(msg.Tagval.Time_stamp)
+            n.joinGroup(msg.Mem_list)
+        case PUBLIC:
+            n.checkPeers(msg.Mem_list)
+            n.updateTag(msg.Tagval)
+            fmt.Printf("Recved: %s\n", msg.Ety.Msg)
+        case HEARTBEAT:
+            n.checkPeers(msg.Mem_list)
+            n.updateTag(msg.Tagval)
+            //fmt.Println("heartbeat", msg.Mem_list)
+        case ACCEPT:
+        	fmt.Printf("\tAccepted by %d\n", msg.Tagval.Id)
+        case DECLINE:
+            n.updateTag(msg.Tagval)
+    }
 }
