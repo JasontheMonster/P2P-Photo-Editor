@@ -25,26 +25,26 @@ func (n *Node) updateTag(tag Tag) {
 	var msg Message
     tmp := n.tag.compareTo(tag)
 	if tmp < 0 {
-		msg = n.createMessage(ACCEPT, "i need update", make(map[int]string))
+		msg = n.createMessage(ACCEPT, "i need update", make(map[int]MemListEntry))
 	} else if tmp > 0 {
-		msg = n.createMessage(DECLINE, "i am newer", make(map[int]string))
+		msg = n.createMessage(DECLINE, "i am newer", make(map[int]MemListEntry))
 	} else {
-        msg = n.createMessage(ACCEPT, "up to date", make(map[int]string))
+        msg = n.createMessage(ACCEPT, "up to date", make(map[int]MemListEntry))
     }
-	send(n.mem_list[tag.Id], msg)
+	send(n.mem_list[tag.Id].Addr, msg)
 }
 
 type Message struct {
 	// INVITE, PUBLIC, HEARTBEAT
-    Kind        int 			`json:"kind"`
-    Ety         Entry 			`json:"ety"`
-    Tagval 		Tag 			`json:"tagval"`
-    Mem_list    map[int]string 	`json:"mem_list"`
+    Kind        int 			       `json:"kind"`
+    Ety         Entry 			       `json:"ety"`
+    Tagval 		Tag 			       `json:"tagval"`
+    Mem_list    map[int]MemListEntry   `json:"mem_list"`
     //QUIT          bool   
 }
 
 // function to create message
-func (n *Node) createMessage(Kind int, info string, mem_list map[int]string) Message {
+func (n *Node) createMessage(Kind int, info string, mem_list map[int]MemListEntry) Message {
     var msg Message
     msg.Kind = Kind
     msg.Ety = Entry{Time_stamp: n.tag.Time_stamp, Msg: info}
@@ -58,6 +58,7 @@ func (n *Node) handleMsg(msg Message){
     // fmt.Println(msg)
     switch msg.Kind {
     	case INVITE:
+            fmt.Println(msg)
             n.tag.Time_stamp = msg.Tagval.Time_stamp
             n.log = initLog(msg.Tagval.Time_stamp)
             n.joinGroup(msg.Mem_list)
@@ -68,7 +69,7 @@ func (n *Node) handleMsg(msg Message){
         case HEARTBEAT:
             n.checkPeers(msg.Mem_list)
             n.updateTag(msg.Tagval)
-            //fmt.Println("heartbeat", msg.Mem_list)
+            fmt.Println("heartbeat", msg.Mem_list)
         case ACCEPT:
         	fmt.Printf("\tAccepted by %d\n", msg.Tagval.Id)
         case DECLINE:

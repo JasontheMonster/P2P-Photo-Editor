@@ -3,6 +3,7 @@ package main
 import (
 	"sync"
 	"flag"
+    "time"
 )
 
 var (
@@ -12,6 +13,7 @@ var (
 func main() {
     done := make(chan bool)
     var node Node
+    node.heartbeat = 0;
     //command line input node id & address
     flag.IntVar(&node.ID, "id", 0, "specify the node id")
     flag.StringVar(&node.addr, "addr", "127.0.0.1:8080", "specify the node address")
@@ -22,16 +24,17 @@ func main() {
     node.log = initLog(0)
     //initialize membership list and connection list
     node.active_mem = make(map[int]bool)
-    node.mem_list = make(map[int]string) 
+    node.mem_list = make(map[int]MemListEntry) 
     //put itself in the list
-    node.mem_list[node.ID] = node.addr
+    entry := MemListEntry{ID: node.ID, Addr: node.addr, Heartbeat: node.heartbeat, Tag: node.tag, Timestamp: time.Now().UnixNano()}
+    node.mem_list[node.ID] = entry
 
     //listening thread
     go node.server(done)
     //user input thread
     go node.userInput(done)
-    // go node.heartbeat(done)
-    for i := 0; i < 2; i++{
+    go node.sendHeartbeat(done)
+    for i := 0; i < 3; i++{
         <- done
     }
 }

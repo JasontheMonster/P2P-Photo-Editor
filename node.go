@@ -4,16 +4,26 @@ import (
     "fmt"
     "bufio"
     "strings"
+    "strconv"
     "os"
     "time"
 )
 
+type MemListEntry struct {
+    ID          int
+    Addr        string
+    Heartbeat   int
+    Tag         Tag
+    Timestamp   int64
+}
+
 type Node struct {
     ID          int
     addr        string
+    heartbeat   int
     log         Log
     tag         Tag
-    mem_list    map[int]string
+    mem_list    map[int]MemListEntry
     active_mem  map[int]bool
 }
 
@@ -31,20 +41,27 @@ func (n *Node) isAlive(id int) bool {
     return status || prs
 }
 
-func (n *Node) checkPeers(memlist map[int]string) {
-    for id, addr := range memlist{
+func (n *Node) checkPeers(memlist map[int]MemListEntry) {
+    for id, entry := range memlist{
         if _, isIn := n.mem_list[id]; !isIn {
-            n.mem_list[id] = addr
+            entry.Timestamp = time.Now().UnixNano()
+            n.mem_list[id] = entry
             n.active_mem[id] = true
+        } else {
+            if (n.mem_list[id].Heartbeat <= entry.Heartbeat) {
+                entry.Timestamp = time.Now().UnixNano()
+                n.mem_list[id] = entry
+            }
         }
     }
     return
 }
 
 //add Peer to the network
-func (n *Node) joinGroup(mem_list map[int]string){
-	for id, addr := range mem_list{
-		n.mem_list[id] = addr
+func (n *Node) joinGroup(mem_list map[int]MemListEntry){
+	for id, entry := range mem_list{
+        entry.Timestamp = time.Now().UnixNano()
+		n.mem_list[id] = entry
 		n.active_mem[id] = true
 	}
     //n.checkPeers(mem_list)
@@ -62,8 +79,10 @@ func (n *Node) invite(dest string) {
 
 // Send messages to everyone in the group
 func (n *Node) broadcast(msg Message) {
-    for _,addr := range n.mem_list {
-	   send(addr, msg)
+    for _,entry := range n.mem_list {
+        if (entry.ID != n.ID) {
+            send(entry.Addr, msg)   
+        }
     }
 }
 
@@ -85,9 +104,13 @@ func (n *Node) userInput(done chan bool) {
     done <- true
 }
 
-func (n *Node) heartbeat(done chan bool) {
+func (n *Node) sendHeartbeat(done chan bool) {
     for {
         time.Sleep(1000 * time.Millisecond)
+        n.heartbeat++
+        entry := n.mem_list[n.ID]
+        entry.Heartbeat = n.heartbeat
+        n.mem_list[n.ID] = entry
         msg := n.createMessage(HEARTBEAT, "HB", n.mem_list)
         n.broadcast(msg)
     }
