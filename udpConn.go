@@ -47,6 +47,7 @@ func (n *Node) server(done chan bool){
 		}
 
 		json.Unmarshal(buf[:num], &msg)
+		fmt.Println(msg)
 		go n.handleMsg(msg)
 	}
 	done<-true
