@@ -14,24 +14,21 @@ func createTag(id int, ts int) Tag {
 }
 
 func (this *Tag) compareTo(other Tag) int {
-	if this.Time_stamp != other.Time_stamp {
-		return this.Time_stamp - other.Time_stamp
-	} else {
-		return this.Id - other.Id
-	}
+	return this.Time_stamp - other.Time_stamp
+
 }
 
 func (n *Node) updateTag(tag Tag) {
 	var msg Message
     tmp := n.tag.compareTo(tag)
 	if tmp < 0 {
-		msg = n.createMessage(UPDATEREQUEST, "i need update", make(map[int]string))
+		msg = n.createMessage(UPDATEREQUEST, "i need update", make(map[int]MemListEntry))
 	} else if tmp > 0 {
-		msg = n.createMessage(DECLINE, "i am newer", make(map[int]string))
+		msg = n.createMessage(DECLINE, "i am newer", make(map[int]MemListEntry))
 	} else {
-        msg = n.createMessage(ACCEPT, "up to date", make(map[int]string))
+        msg = n.createMessage(ACCEPT, "up to date", make(map[int]MemListEntry))
     }
-	send(n.mem_list[tag.Id], msg)
+	send(n.mem_list[tag.Id].Addr, msg)
 }
 
 //send updated logs file list to the node who requested
@@ -43,21 +40,19 @@ func(n *Node) sendUpdate(tag Tag){
     //updateLog := entries_history[otherTime+1:]
     msg = n.createMessageWithLog(UPDATEINFO, "this is a updated log", entries_history)
 
-    send(n.mem_list[tag.Id], msg)
+    send(n.mem_list[tag.Id].Addr, msg)
 }
 
 type Message struct {
-	// INVITE, PUBLIC, HEARTBEAT, Accept, Decline, UpdateRequest, UpdateInfo
-    Kind        int 			`json:"kind"`
-    Ety         Entry 			`json:"ety"`
-    Tagval 		Tag 			`json:"tagval"`
-    Mem_list    map[int]string 	`json:"mem_list"`
-    //store list of updated log files
+	// INVITE, PUBLIC, HEARTBEAT
+    Kind        int 			       `json:"kind"`
+    Ety         Entry 			       `json:"ety"`
+    Tagval 		Tag 			       `json:"tagval"`
+    Mem_list    map[int]MemListEntry   `json:"mem_list"`
     UpdateInfo  []Entry 
 
     //image file string
     Image       string
-
     //QUIT          bool   
 }
 
@@ -69,13 +64,13 @@ func (n *Node) createMessageWithLog(Kind int, info string, updateinfo[]Entry) Me
     msg.Kind = Kind
     msg.Ety = Entry{Time_stamp: n.tag.Time_stamp, Msg: info}
     msg.Tagval = createTag(n.ID, n.tag.Time_stamp)
-    msg.Mem_list = make(map[int]string)
+    msg.Mem_list = make(map[int]MemListEntry)
     msg.UpdateInfo = updateinfo
     msg.Image = ""
     return msg
 }
 // function to create message
-func (n *Node) createMessage(Kind int, info string, mem_list map[int]string) Message {
+func (n *Node) createMessage(Kind int, info string, mem_list map[int]MemListEntry) Message {
     var msg Message
     msg.Kind = Kind
     msg.Ety = Entry{Time_stamp: n.tag.Time_stamp, Msg: info}
@@ -92,7 +87,7 @@ func (n *Node) createMessageWithImage(Kind int, info string, image string) Messa
     msg.Kind = Kind
     msg.Ety = Entry{Time_stamp: n.tag.Time_stamp, Msg: info}
     msg.Tagval = createTag(n.ID, n.tag.Time_stamp)
-    msg.Mem_list =  make(map[int]string)
+    msg.Mem_list =  make(map[int]MemListEntry)
     msg.UpdateInfo = make([]Entry, 1)
     msg.Image = image
     return msg
@@ -103,6 +98,7 @@ func (n *Node) handleMsg(msg Message){
     fmt.Println(msg)
     switch msg.Kind {
     	case INVITE:
+            fmt.Println(msg)
             n.tag.Time_stamp = msg.Tagval.Time_stamp
             n.log = initLog(msg.Tagval.Time_stamp)
             n.joinGroup(msg.Mem_list)
@@ -115,7 +111,7 @@ func (n *Node) handleMsg(msg Message){
         case HEARTBEAT:
             n.checkPeers(msg.Mem_list)
             n.updateTag(msg.Tagval)
-            //fmt.Println("heartbeat", msg.Mem_list)
+            fmt.Println("heartbeat", msg.Mem_list)
         //receive message required for update
         case UPDATEINFO:
             fmt.Printf("receive update info from %d\n", msg.Tagval.Id)
@@ -123,6 +119,7 @@ func (n *Node) handleMsg(msg Message){
             n.sendUpdate(msg.Tagval)
             fmt.Printf("sent update info to %d\n", msg.Tagval.Id)
         //accept invitation message
+
         case ACCEPT:
         	fmt.Printf("\tAccepted by %d\n", msg.Tagval.Id)
         case DECLINE:
