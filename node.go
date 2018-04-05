@@ -6,6 +6,7 @@ import (
     "strings"
     "os"
     "time"
+    "encoding/base64"
 )
 
 type MemListEntry struct {
@@ -65,7 +66,7 @@ func (n *Node) joinGroup(mem_list map[int]MemListEntry){
 	}
     //n.checkPeers(mem_list)
     arg := "Invitation accepted by: " + n.addr
-    msg := n.createMessage(PUBLIC, arg, n.mem_list)
+    msg := n.createMessage(ACCEPT, arg, n.mem_list)
     n.broadcast(msg)
 }
 
@@ -73,7 +74,33 @@ func (n *Node) joinGroup(mem_list map[int]MemListEntry){
 func (n *Node) invite(dest string) {
     fmt.Printf("\tinviting %s\n", dest)
     inv := n.createMessage(INVITE, "invite", n.mem_list)
+    //inv.Image = n.encodeImage()
+    //fmt.Println(inv.Image)
     send(dest, inv)
+    //fmt.Println("1")
+}
+
+func (n *Node) encodeImage() string {
+    imgFile, err := os.Open("example.png")
+    
+    if err != nil {
+     fmt.Println(err)
+     os.Exit(1)
+    }
+
+    defer imgFile.Close()
+
+    fInfo, _ := imgFile.Stat()
+    var size int64 = fInfo.Size()
+    buf := make([]byte, size)
+
+    // read file content into buffer
+    fReader := bufio.NewReader(imgFile)
+    fReader.Read(buf)
+
+    imgBase64Str := base64.StdEncoding.EncodeToString(buf)
+
+    return imgBase64Str
 }
 
 // Send messages to everyone in the group
