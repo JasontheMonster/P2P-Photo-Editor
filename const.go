@@ -10,3 +10,6 @@ const PUBLIC	= 1
 const HEARTBEAT	= 2
 const ACCEPT	= 3
 const DECLINE	= 4
+
+const TFAIL = 5
+const TCLEANUP = 20
