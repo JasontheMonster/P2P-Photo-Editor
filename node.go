@@ -112,6 +112,16 @@ func (n *Node) sendHeartbeat(done chan bool) {
         n.mem_list[n.ID] = entry
         msg := n.createMessage(HEARTBEAT, "HB", n.mem_list)
         n.broadcast(msg)
+
+        for id, entry := range n.mem_list {
+        if (time.Now().UnixNano() - entry.Timestamp > TCLEANUP) {
+            n.delNode(id)
+            continue
+        }
+        if (time.Now().UnixNano() - entry.Timestamp > TFAIL) {
+            n.deactiveNode(id)
+        }
+    }
     }
     done <- true
 }

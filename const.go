@@ -11,5 +11,5 @@ const HEARTBEAT	= 2
 const ACCEPT	= 3
 const DECLINE	= 4
 
-const TFAIL = 5
-const TCLEANUP = 20
+const TFAIL = 5 * 1000000000
+const TCLEANUP = 20 * 1000000000
