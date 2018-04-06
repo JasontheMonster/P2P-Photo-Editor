@@ -14,6 +14,7 @@ type MemListEntry struct {
     Heartbeat   int
     Tag         Tag
     Timestamp   int64
+    Active      bool
 }
 
 type Node struct {
@@ -23,21 +24,24 @@ type Node struct {
     log         Log
     tag         Tag
     mem_list    map[int]MemListEntry
-    active_mem  map[int]bool
+    voted       bool
+    holdBack    HoldBackEty
 }
 
-func (n *Node) deactiveNode(id int) {
-    n.active_mem[id] = false
+func (m *MemListEntry) deactiveNode() {
+    m.Active = false
 }
 
 func (n *Node) delNode(id int) {
     delete(n.mem_list, id)
-    delete(n.active_mem, id)
 }
 
 func (n *Node) isAlive(id int) bool {
-    status, prs := n.active_mem[id]
-    return status || prs
+    ety, prs := n.mem_list[id]
+    if prs {
+        return true
+    }
+    return ety.Active
 }
 
 func (n *Node) checkPeers(memlist map[int]MemListEntry) {
@@ -45,12 +49,9 @@ func (n *Node) checkPeers(memlist map[int]MemListEntry) {
         if _, isIn := n.mem_list[id]; !isIn {
             entry.Timestamp = time.Now().UnixNano()
             n.mem_list[id] = entry
-            n.active_mem[id] = true
-        } else {
-            if (n.mem_list[id].Heartbeat <= entry.Heartbeat) {
-                entry.Timestamp = time.Now().UnixNano()
-                n.mem_list[id] = entry
-            }
+        } else if (n.mem_list[id].Heartbeat <= entry.Heartbeat) {
+            entry.Timestamp = time.Now().UnixNano()
+            n.mem_list[id] = entry
         }
     }
     return
@@ -61,25 +62,25 @@ func (n *Node) joinGroup(mem_list map[int]MemListEntry){
 	for id, entry := range mem_list{
         entry.Timestamp = time.Now().UnixNano()
 		n.mem_list[id] = entry
-		n.active_mem[id] = true
 	}
     //n.checkPeers(mem_list)
-    arg := "Invitation accepted by: " + n.addr
-    msg := n.createMessage(PUBLIC, arg, n.mem_list)
+    var memlist = make(map[int]MemListEntry)
+    memlist[n.ID] = n.mem_list[n.ID]
+    msg := n.createMessage(ACCEPT, "", memlist)
     n.broadcast(msg)
 }
 
 // send invitation to new peer (string destination address)
 func (n *Node) invite(dest string) {
     fmt.Printf("\tinviting %s\n", dest)
-    inv := n.createMessage(INVITE, "invite", n.mem_list)
+    inv := n.createMessage(INVITE, "", n.mem_list)
     send(dest, inv)
 }
 
 // Send messages to everyone in the group
 func (n *Node) broadcast(msg Message) {
     for _,entry := range n.mem_list {
-        if (entry.ID != n.ID) {
+        if (entry.ID != n.ID) && (entry.Active) {
             send(entry.Addr, msg)   
         }
     }
@@ -96,22 +97,59 @@ func (n *Node) userInput(done chan bool) {
             case "invite":
                 go n.invite(input[1])
             case "send":
-                msg := n.createMessage(PUBLIC, input[1], n.mem_list)
-                go n.broadcast(msg)
+                msg := n.createDataMessage(PUBLIC, input[1], n.mem_list)
+                chans[msg.Ety.Time_stamp] = make(chan bool)
+                go n.updateToAll(msg, chans[msg.Ety.Time_stamp])
         }
     }
     done <- true
 }
 
+func (n *Node) updateToAll(msg Message, ack chan bool){
+    n.broadcast(msg)
+
+    acks := 1
+    decs := 0
+    if n.voted {
+        acks = 0
+        decs = 1
+        n.voted = true
+    }
+        
+    for (acks < len(n.mem_list)/2 + 1) && (decs < len(n.mem_list)/2 + 1){
+        if <- ack {
+            acks += 1
+        } else{
+            decs += 1
+        }
+    }
+
+    if acks >= len(n.mem_list)/2 + 1 {
+        fmt.Printf("Commited: %s\n", msg.Ety.Msg)
+        n.tag.Time_stamp += 1
+        n.log.append(msg.Ety)
+        commit := n.createMessage(COMMIT, msg.Ety.Msg, make(map[int]MemListEntry))
+        n.broadcast(commit)
+    }
+    delete(chans, msg.Tagval.Time_stamp)
+}
+
 func (n *Node) sendHeartbeat(done chan bool) {
+    var now int64
     for {
-        time.Sleep(1000 * time.Millisecond)
+        time.Sleep(10000 * time.Millisecond)
+
         n.heartbeat++
         entry := n.mem_list[n.ID]
         entry.Heartbeat = n.heartbeat
         n.mem_list[n.ID] = entry
         msg := n.createMessage(HEARTBEAT, "HB", n.mem_list)
         n.broadcast(msg)
+
+        now = time.Now().UnixNano()
+        if n.voted && (now - n.holdBack.Time > TFAIL) {
+            n.voted = false
+        }
     }
     done <- true
 }

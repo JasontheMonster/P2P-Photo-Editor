@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+    "time"
 )
 
 type Tag struct {
@@ -14,28 +15,23 @@ func createTag(id int, ts int) Tag {
 }
 
 func (this *Tag) compareTo(other Tag) int {
-	if this.Time_stamp != other.Time_stamp {
-		return this.Time_stamp - other.Time_stamp
-	} else {
-		return this.Id - other.Id
-	}
+	return this.Time_stamp - other.Time_stamp
 }
 
-func (n *Node) updateTag(tag Tag) {
-	var msg Message
-    tmp := n.tag.compareTo(tag)
-	if tmp < 0 {
-		msg = n.createMessage(ACCEPT, "i need update", make(map[int]MemListEntry))
-	} else if tmp > 0 {
-		msg = n.createMessage(DECLINE, "i am newer", make(map[int]MemListEntry))
-	} else {
-        msg = n.createMessage(ACCEPT, "up to date", make(map[int]MemListEntry))
-    }
-	send(n.mem_list[tag.Id].Addr, msg)
+func (n *Node) updateTag(msg Message) {
+	var rep Message
+    tmp := n.tag.compareTo(msg.Tagval)
+    if n.voted || tmp > 0 {
+        rep = n.createMessage(ACK, "fuck ya", make(map[int]MemListEntry))
+    } else {
+        n.voted = true
+        n.holdBack = HoldBackEty{Ety: msg.Ety, Time: time.Now().UnixNano()}
+		rep = n.createDataMessage(ACK, "agreed", make(map[int]MemListEntry))
+	}
+	send(n.mem_list[msg.Tagval.Id].Addr, rep)
 }
 
 type Message struct {
-	// INVITE, PUBLIC, HEARTBEAT
     Kind        int 			       `json:"kind"`
     Ety         Entry 			       `json:"ety"`
     Tagval 		Tag 			       `json:"tagval"`
@@ -53,26 +49,43 @@ func (n *Node) createMessage(Kind int, info string, mem_list map[int]MemListEntr
     return msg
 }
 
+// data message's tag is current tag + 1
+func (n *Node) createDataMessage(Kind int, info string, mem_list map[int]MemListEntry) Message {
+    msg := n.createMessage(Kind, info, mem_list)
+    msg.Ety.Time_stamp += 1
+    return msg
+}
+
 //function to handle message
 func (n *Node) handleMsg(msg Message){
     // fmt.Println(msg)
     switch msg.Kind {
     	case INVITE:
-            fmt.Println(msg)
+            fmt.Println("\tAccepted invitation.")
             n.tag.Time_stamp = msg.Tagval.Time_stamp
             n.log = initLog(msg.Tagval.Time_stamp)
             n.joinGroup(msg.Mem_list)
         case PUBLIC:
             n.checkPeers(msg.Mem_list)
-            n.updateTag(msg.Tagval)
-            fmt.Printf("Recved: %s\n", msg.Ety.Msg)
+            n.updateTag(msg)
+            fmt.Printf("\tRecved: %s\n", msg.Ety.Msg)
         case HEARTBEAT:
             n.checkPeers(msg.Mem_list)
-            n.updateTag(msg.Tagval)
-            fmt.Println("heartbeat", msg.Mem_list)
+            // n.updateTag(msg)
+            fmt.Println("\theartbeat")
         case ACCEPT:
-        	fmt.Printf("\tAccepted by %d\n", msg.Tagval.Id)
-        case DECLINE:
-            n.updateTag(msg.Tagval)
+        	fmt.Printf("\tInvite accepted by %d\n", msg.Tagval.Id)
+            n.mem_list[msg.Tagval.Id] = msg.Mem_list[msg.Tagval.Id]
+        // case DECLINE:
+        //     n.updateTag(msg)
+        case ACK:
+            if ack, isIn := chans[msg.Ety.Time_stamp]; isIn{
+                ack <- (n.tag.compareTo(msg.Tagval) >= 0)
+            }
+        case COMMIT:
+            n.voted = false
+            n.tag = msg.Tagval
+            n.log.append(n.holdBack.Ety)
+            fmt.Printf("Commited: %s\n", n.holdBack.Ety.Msg)
     }
 }

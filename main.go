@@ -8,7 +8,10 @@ import (
 
 var (
     mutex = new(sync.Mutex) //lock
+    chans = make(map[int](chan bool))
 )
+
+// chans := make(map[int](chan bool))
 
 func main() {
     done := make(chan bool)
@@ -22,11 +25,11 @@ func main() {
     node.tag = createTag(node.ID, 0)
     //initilaize first log with empty entry and timestamp=0
     node.log = initLog(0)
+    node.voted = false
     //initialize membership list and connection list
-    node.active_mem = make(map[int]bool)
     node.mem_list = make(map[int]MemListEntry) 
     //put itself in the list
-    entry := MemListEntry{ID: node.ID, Addr: node.addr, Heartbeat: node.heartbeat, Tag: node.tag, Timestamp: time.Now().UnixNano()}
+    entry := MemListEntry{ID: node.ID, Addr: node.addr, Heartbeat: node.heartbeat, Tag: node.tag, Timestamp: time.Now().UnixNano(), Active: true}
     node.mem_list[node.ID] = entry
 
     //listening thread

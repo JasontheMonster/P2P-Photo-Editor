@@ -9,7 +9,9 @@ const INVITE	= 0
 const PUBLIC	= 1
 const HEARTBEAT	= 2
 const ACCEPT	= 3
-const DECLINE	= 4
+// const DECLINE	= 4
+const ACK		= 5
+const COMMIT	= 6
 
-const TFAIL = 5
-const TCLEANUP = 20
+const TFAIL = 5000000000
+const TCLEANUP = 20000000000
