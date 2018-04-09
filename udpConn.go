@@ -7,6 +7,7 @@ import (
 	"log"
 )
 
+// try send msg to addr
 func send(addr string, msg Message){
 	b,_ := json.Marshal(msg)
 	udpAddr,err1 := net.ResolveUDPAddr("udp4", addr)
