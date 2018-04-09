@@ -6,6 +6,7 @@ import (
     "strings"
     "os"
     "time"
+    "encoding/base64"
 )
 
 type MemListEntry struct {
@@ -28,7 +29,7 @@ type Node struct {
     holdBack    HoldBackEty
 }
 
-func (m *MemListEntry) deactiveNode() {
+func (m MemListEntry) deactiveNode() {
     m.Active = false
 }
 
@@ -63,7 +64,7 @@ func (n *Node) joinGroup(mem_list map[int]MemListEntry){
         entry.Timestamp = time.Now().UnixNano()
 		n.mem_list[id] = entry
 	}
-    //n.checkPeers(mem_list)
+
     var memlist = make(map[int]MemListEntry)
     memlist[n.ID] = n.mem_list[n.ID]
     msg := n.createMessage(ACCEPT, "", memlist)
@@ -75,6 +76,29 @@ func (n *Node) invite(dest string) {
     fmt.Printf("\tinviting %s\n", dest)
     inv := n.createMessage(INVITE, "", n.mem_list)
     send(dest, inv)
+}
+
+func (n *Node) encodeImage() string {
+    imgFile, err := os.Open("example.png")
+    
+    if err != nil {
+     fmt.Println(err)
+     os.Exit(1)
+    }
+
+    defer imgFile.Close()
+
+    fInfo, _ := imgFile.Stat()
+    var size int64 = fInfo.Size()
+    buf := make([]byte, size)
+
+    // read file content into buffer
+    fReader := bufio.NewReader(imgFile)
+    fReader.Read(buf)
+
+    imgBase64Str := base64.StdEncoding.EncodeToString(buf)
+
+    return imgBase64Str
 }
 
 // Send messages to everyone in the group
@@ -134,6 +158,15 @@ func (n *Node) updateToAll(msg Message, ack chan bool){
     delete(chans, msg.Tagval.Time_stamp)
 }
 
+func (n *Node) commit(msg Message) {
+    n.voted = false
+    if (n.tag.compareTo(msg.Tagval) == -1) {
+        n.log.append(n.holdBack.Ety)
+    }
+    n.tag.Time_stamp = msg.Tagval.Time_stamp 
+    fmt.Printf("Commited: %s\n", n.holdBack.Ety.Msg)
+}
+
 func (n *Node) sendHeartbeat(done chan bool) {
     var now int64
     for {
@@ -150,6 +183,23 @@ func (n *Node) sendHeartbeat(done chan bool) {
         if n.voted && (now - n.holdBack.Time > TFAIL) {
             n.voted = false
         }
+
+        for id, entry := range n.mem_list {
+            if (now - entry.Timestamp > TCLEANUP) {
+                n.delNode(id)
+            } else if (now - entry.Timestamp > TFAIL) {
+                n.mem_list[id].deactiveNode()
+            }
+        }
     }
     done <- true
+}
+
+//send updated logs file list to the node who requested
+func(n *Node) sendUpdate(tag Tag){
+    otherTime := tag.Time_stamp
+    entries_history := n.log.entries
+    updateLog := entries_history[otherTime:]
+    msg := n.createMessageWithLog(UPDATEINFO, "", updateLog)
+    send(n.mem_list[tag.Id].Addr, msg)
 }

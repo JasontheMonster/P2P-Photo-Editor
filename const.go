@@ -13,5 +13,10 @@ const ACCEPT	= 3
 const ACK		= 5
 const COMMIT	= 6
 
-const TFAIL = 5000000000
-const TCLEANUP = 20000000000
+const UPDATEINFO 	= 7
+const UPDATEREQUEST = 8
+const IMAGE 		= 9
+
+
+const TFAIL = 5 * 1000000000
+const TCLEANUP = 20 * 1000000000

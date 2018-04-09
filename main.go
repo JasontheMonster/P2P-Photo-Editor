@@ -11,8 +11,6 @@ var (
     chans = make(map[int](chan bool))
 )
 
-// chans := make(map[int](chan bool))
-
 func main() {
     done := make(chan bool)
     var node Node

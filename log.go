@@ -24,3 +24,18 @@ func (l *Log)append(ety Entry){
 	l.time_stamp = ety.Time_stamp
 	l.entries = append(l.entries, ety)
 }
+
+func (l *Log) updateLog(etys []Entry) {
+	for _, ety := range etys {
+		if l.time_stamp + 1 == ety.Time_stamp {
+			l.append(ety)
+		}
+	}
+}
+
+func (n *Node) checkLog(tag Tag) {
+	if n.tag.compareTo(tag) < 0 {
+		req := n.createMessage(UPDATEREQUEST, "", make(map[int]MemListEntry))
+        send(n.mem_list[tag.Id].Addr, req)
+	}
+}
