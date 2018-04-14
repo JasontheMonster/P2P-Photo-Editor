@@ -10,10 +10,7 @@ type Message struct {
     Tag 		Tag 			       `json:"tagval"`
     Mem_list    map[int]MemListEntry   `json:"mem_list"`
     UpdateInfo  []Entry                `json:"updateinfo"`
-
-    //image file string
-    Image       string                 `json:"image"`
-    //QUIT          bool   
+  
 }
 
 // function to create message
@@ -24,7 +21,6 @@ func (n *Node) createMessage(Kind int, info string, mem_list map[int]MemListEntr
     msg.Tag = createTag(n.ID, n.tag.Time_stamp)
     msg.Mem_list = mem_list
     msg.UpdateInfo = make([]Entry, 1)
-    msg.Image = ""
     return msg
 }
 
@@ -35,12 +31,6 @@ func (n *Node) createMessageWithLog(Kind int, info string, updateinfo[]Entry) Me
     return msg
 }
 
-// function to send image
-func (n *Node) createMessageWithImage(Kind int, info string, image string) Message {
-    msg := n.createMessage(Kind, info, make(map[int]MemListEntry))
-    msg.Image = image
-    return msg
-}
 
 // data message's tag is current tag + 1
 func (n *Node) createDataMessage(Kind int, info string) Message {
@@ -65,7 +55,8 @@ func (n *Node) handleMsg(msg Message){
             fmt.Println("\tAccepted invitation.")
             n.tag.Time_stamp = msg.Tag.Time_stamp
             n.log = initLog(msg.Tag.Time_stamp)
-            n.joinGroup(msg.Mem_list)
+            targetId := msg.Tag.ID
+            n.joinGroup(msg.Mem_list, targetId)
         case PUBLIC:
             n.checkPeers(msg.Mem_list)
             n.updateTag(msg)
@@ -91,8 +82,5 @@ func (n *Node) handleMsg(msg Message){
         case UPDATEREQUEST:
             n.sendUpdate(msg.Tag)
             // fmt.Printf("sent update info to %d\n", msg.Tagval.Id)
-        case IMAGE:
-            fmt.Println("1")
-            fmt.Printf("\tAccepted by %s\n", msg.Image)
     }
 }

@@ -32,13 +32,20 @@ func (n *Node) broadcast(msg Message) {
 func (n *Node) invite(dest string) {
     fmt.Printf("\tinviting %s\n", dest)
     inv := n.createMessage(INVITE, "", n.mem_list)
+
+    //start listening threads
+    go n.ImageTransferListener()
+
     send(dest, inv)
 }
 
 // Peer to the network
-func (n *Node) joinGroup(mem_list map[int]MemListEntry){
+func (n *Node) joinGroup(mem_list map[int]MemListEntry, targetId int){
     n.checkPeers(mem_list)
     tmp := map[int]MemListEntry{n.ID: n.mem_list[n.ID]}
+    //ask for image
+    connect_receive_image(mem_list[targetId].Addr)
+    //get the image
     msg := n.createMessage(ACCEPT, "", tmp)
     n.broadcast(msg)
 }
