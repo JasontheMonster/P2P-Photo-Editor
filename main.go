@@ -37,6 +37,7 @@ func main() {
     // put itself in the map
     node.mem_list[node.ID] = MemListEntry{Addr: node.addr, Heartbeat: node.heartbeat, Tag: node.tag, Timestamp: time.Now().UnixNano(), Active: true}
 
+    go node.localConnection("127.0.0.1:5005")
     //listening thread
     go node.server(done)
     //user input thread
