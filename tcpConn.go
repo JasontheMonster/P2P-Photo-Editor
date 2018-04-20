@@ -37,7 +37,7 @@ func connect_receive_image(addr string){
 
 	fmt.Println("start receiving file: ", fileName, " with size: ", fileSize)
 	//create a new file descripter
-	newFile, err := os.Create("test"+fileName)
+	newFile, err := os.Create(LOG_PATH+fileName)
 	if err != nil{
 		panic(err)
 	}
@@ -109,7 +109,7 @@ func handleImage(conn net.Conn, finish_image chan bool){
 	fmt.Println("A client has been connect")
 	defer conn.Close()
 
-	file, err := os.Open("images/example.png")
+	file, err := os.Open("images/android.png")
 	if err != nil {
 		fmt.Println(err)
 		return
