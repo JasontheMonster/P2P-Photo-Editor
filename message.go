@@ -46,6 +46,7 @@ func (n *Node) commit(msg Message) {
     }
     n.tag.Time_stamp = msg.Tag.Time_stamp 
     fmt.Printf("Commited: %s\n", n.holdBack.Ety.Msg)
+    go sendToFront(n.holdBack.Ety.Msg)
 }
 
 //function to handle message

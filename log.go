@@ -23,7 +23,7 @@ func initLog(ts int) Log {
 }
 
 // append entry to log and update time
-func (l *Log)append(ety Entry){
+func (l *Log) append(ety Entry){
 	l.Time_stamp = ety.Time_stamp
 	l.Entries = append(l.Entries, ety)
 }

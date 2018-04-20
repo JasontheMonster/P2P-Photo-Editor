@@ -3,6 +3,7 @@ package main
 import (
     "net"
     "fmt"
+    "strings"
 )
 
 
@@ -22,21 +23,33 @@ func (n *Node) localConnection(addr string){
         if err3 != nil {
 		  fmt.Println(err3)
         }
-        go handleClient(conn)
+        go n.handleClient(conn)
 
     } 
     //done <- true
 }
 
-func handleClient(conn net.Conn){
+func (n *Node) handleClient(conn net.Conn) {
     defer conn.Close()
     buf := make([]byte, 1024)
-
     relen, err := conn.Read(buf)
-
-    s := string(buf[:relen])
     if err != nil {
         fmt.Println("Error reading:", err.Error())
     }
-    fmt.Println("received %s", s)
+
+    s := string(buf[:relen])
+    if (strings.HasPrefix(s,"invite")) {
+        s = strings.TrimPrefix(s,"invite")
+        n.invite(s)
+    } else{
+        msg := n.createDataMessage(PUBLIC, s)
+        chans[msg.Ety.Time_stamp] = make(chan bool)
+        n.updateToAll(msg, chans[msg.Ety.Time_stamp])
+    }
+}
+
+func sendToFront(logEty string) {
+    conn,_ := net.Dial("tcp", "127.0.0.1:5006")
+    defer conn.Close()
+    conn.Write([]byte(logEty))
 }
