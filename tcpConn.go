@@ -109,7 +109,7 @@ func handleImage(conn net.Conn, finish_image chan bool){
 	fmt.Println("A client has been connect")
 	defer conn.Close()
 
-	file, err := os.Open("example.png")
+	file, err := os.Open("images/example.png")
 	if err != nil {
 		fmt.Println(err)
 		return
