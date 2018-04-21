@@ -49,12 +49,13 @@ def gaussianBlur(img, klen):
 	return cv2.filter2D(img,-1,G)
 
 def bilareralBlur(img, Blen, Glen):
-	HighPass = img.copy()
+	# HighPass = img.copy()
 	HighPass = cv2.bilateralFilter(img,Blen/7,Blen,Blen)
-	HighPass = HighPass - img + 128
-	layer1 = gaussianBlur(HighPass,Glen)
-	layer2 = HighPass + img - 128
-	return layer1/2 + layer2/2
+	# HighPass = HighPass - img + 128
+	# layer1 = gaussianBlur(HighPass,Glen)
+	# layer2 = HighPass + img - 128
+	# return layer1/2 + layer2/2
+	return HighPass
 
 def deNoise(img, klen):
 	return cv2.fastNlMeansDenoisingColored(img,None,klen,klen,7,15)

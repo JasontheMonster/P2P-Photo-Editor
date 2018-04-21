@@ -36,10 +36,12 @@ class App:
 		while True:
 			conn,_ = sock.accept()
 			logEty = conn.recv(1024)
-			self.ops[logEty]
-			conn.close()
+			print "***"+logEty+"***"
 			if not self.isAlive:
 				break
+			self.ops[logEty]()
+			conn.close()
+			
 		sock.close()
 
 	def __send(self, msg):
@@ -81,6 +83,23 @@ class App:
 
 			self.Btn_contrast = Button(self.master, text='contrast', height=5, width=15, bg='indian red', command=lambda: self.__send('contrast'))
 			self.Btn_contrast.grid(row=5,column=1)
+			# self.Btn_invite = Button(self.master, text='invite', height=5, width=15, bg='indian red', command=lambda: self.__invite())
+			# self.Btn_invite.grid(row=0,column=1)
+
+			# self.Btn_bright = Button(self.master, text='bright', height=5, width=15, bg='indian red', command=lambda: self.__bright())
+			# self.Btn_bright.grid(row=1,column=1)
+
+			# self.Btn_saturate = Button(self.master, text='saturate', height=5, width=15, bg='indian red', command=lambda: self.__saturate())
+			# self.Btn_saturate.grid(row=2,column=1)
+
+			# self.Btn_blur = Button(self.master, text='blur', height=5, width=15, bg='indian red', command=lambda: self.__blur())
+			# self.Btn_blur.grid(row=3,column=1)
+
+			# self.Btn_rotate = Button(self.master, text='rotate', height=5, width=15, bg='indian red', command=lambda: self.__rotate())
+			# self.Btn_rotate.grid(row=4,column=1)
+
+			# self.Btn_contrast = Button(self.master, text='contrast', height=5, width=15, bg='indian red', command=lambda: self.__contrast())
+			# self.Btn_contrast.grid(row=5,column=1)
 
 	def __showImg(self):
 		displayImg = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
@@ -107,7 +126,7 @@ class App:
 		self.__showImg()
 
 	def __blur(self):
-		size = img.shape
+		size = self.img.shape
 		klen = min(size[0],size[1])
 		self.img = ps.bilareralBlur(self.img, klen/10, klen/10)
 		self.__showImg()
