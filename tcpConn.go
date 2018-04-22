@@ -12,11 +12,11 @@ import (
 const BUFFERSIZE = 1024
 
 //connect to inviter and receive image with TCP
-func connect_receive_image(addr string){
+func (n *Node) connect_receive_image(addr string){
 	//connect to the inviter
 	connection, err := net.Dial("tcp", addr)
 	if err != nil{
-		panic(err)
+		fmt.Println("addr missing")
 	}
 	defer connection.Close()
 	fmt.Println("connected to server, start receive file name and size")
@@ -37,7 +37,12 @@ func connect_receive_image(addr string){
 
 	fmt.Println("start receiving file: ", fileName, " with size: ", fileSize)
 	//create a new file descripter
-	newFile, err := os.Create(LOG_PATH+fileName)
+	//create tmp disk holder
+	path := "/tmp/image_data/"
+	if _, err := os.Stat("/tmp/image_data/"); os.IsNotExist(err) {
+    	os.Mkdir("/tmp/image_data/", os.ModePerm)
+	}
+	newFile, err := os.Create(path+fileName)
 	if err != nil{
 		panic(err)
 	}
@@ -61,6 +66,8 @@ func connect_receive_image(addr string){
 	}
 
 	fmt.Println("Received!")
+	n.sendToFront("Image:"+"/tmp/image_data/"+fileName)
+
 }
 
 //fill the string with ":"  to certain length
@@ -95,7 +102,7 @@ func (n *Node) ImageTransferListener(){
         if err3 != nil {
 		  fmt.Println(err3)
         }
-        go handleImage(conn, finish_image)
+        go n.handleImage(conn, finish_image)
         x := <- finish_image
         //fmt.Println(x)
         if x {
@@ -105,11 +112,14 @@ func (n *Node) ImageTransferListener(){
     //done <- true
 }
 
-func handleImage(conn net.Conn, finish_image chan bool){
+func (n *Node) handleImage(conn net.Conn, finish_image chan bool){
 	fmt.Println("A client has been connect")
 	defer conn.Close()
 
-	file, err := os.Open("images/android.png")
+	for n.Image_path == ""{
+
+	}
+	file, err := os.Open(n.Image_path)
 	if err != nil {
 		fmt.Println(err)
 		return

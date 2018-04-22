@@ -46,7 +46,7 @@ func (n *Node) commit(msg Message) {
     }
     n.tag.Time_stamp = msg.Tag.Time_stamp 
     fmt.Printf("Commited: %s\n", n.holdBack.Ety.Msg)
-    go sendToFront(n.holdBack.Ety.Msg)
+    go n.sendToFront(n.holdBack.Ety.Msg)
 }
 
 //function to handle message
@@ -57,6 +57,7 @@ func (n *Node) handleMsg(msg Message){
             n.tag.Time_stamp = msg.Tag.Time_stamp
             n.log = initLog(msg.Tag.Time_stamp)
             targetId := msg.Tag.ID
+            ／／fmt.Println("message receive", msg)
             n.joinGroup(msg.Mem_list, targetId)
         case PUBLIC:
             n.checkPeers(msg.Mem_list)

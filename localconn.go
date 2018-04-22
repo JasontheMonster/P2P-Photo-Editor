@@ -8,9 +8,10 @@ import (
 
 
 func (n *Node) localConnection(addr string){
+
 	tcpAddr, err := net.ResolveTCPAddr("tcp4", addr)
     if err != nil{
-        fmt.Println(err)
+        fmt.Println("User not found")
     }
     listener, err2 := net.ListenTCP("tcp", tcpAddr)
     if err2 != nil{
@@ -40,16 +41,22 @@ func (n *Node) handleClient(conn net.Conn) {
     s := string(buf[:relen])
     if (strings.HasPrefix(s,"invite")) {
         s = strings.TrimPrefix(s,"invite")
+        fmt.Println(s)
+        //fmt.Println("receive front end invite and send", n.mem_list)
         n.invite(s)
-    } else{
+    } else if (strings.HasPrefix(s, "PATH")){
+        s = strings.TrimPrefix(s, "PATH:")
+        fmt.Println("this is the image path", s)
+        n.Image_path = s
+    }else{
         msg := n.createDataMessage(PUBLIC, s)
         chans[msg.Ety.Time_stamp] = make(chan bool)
         n.updateToAll(msg, chans[msg.Ety.Time_stamp])
     }
 }
 
-func sendToFront(logEty string) {
-    conn,_ := net.Dial("tcp", "127.0.0.1:5006")
+func (n *Node)sendToFront(logEty string) {
+    conn,_ := net.Dial("tcp", n.localsendAddr)
     defer conn.Close()
     conn.Write([]byte(logEty))
 }

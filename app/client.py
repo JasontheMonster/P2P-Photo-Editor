@@ -7,6 +7,7 @@ import tkSimpleDialog
 import cv2
 import socket
 import ps
+import sys
 
 class App:
 	def __init__(self,master):
@@ -14,7 +15,10 @@ class App:
 		self.master = master
 		self.panel = None
 		self.img = None
+		self.listeningAddr = (sys.argv[1].split(':')[0], int(sys.argv[1].split(':')[1]))
+		self.sendingAddr = (sys.argv[2].split(':')[0], int(sys.argv[2].split(':')[1]))
 
+		self.image_source = ""
 		self.Btn_invite = None
 		self.Btn_bright = None
 		self.Btn_saturate = None
@@ -31,22 +35,35 @@ class App:
 
 	def __listener(self):
 		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		sock.bind(('127.0.0.1',5006))
+		sock.bind(self.listeningAddr)
 		sock.listen(1)
 		while True:
 			conn,_ = sock.accept()
 			logEty = conn.recv(1024)
-			print "***"+logEty+"***"
+			Thread(target=self.__eventHandler, args=(logEty,conn)).start()
 			if not self.isAlive:
 				break
-			self.ops[logEty]()
-			conn.close()
 			
 		sock.close()
 
+	def __eventHandler(self, logEty, conn):
+		if logEty.split(':')[0] == "Image":
+				print "receive image from others!!!!"
+				image_path = logEty.split(':')[1]
+				self.img=cv2.imread(image_path)
+				self.Btn_selectImg.destroy()
+				self.__showImg()
+				self.__preparePanel()
+				self.image_source = image_path
+				self.__send("PATH:"+self.image_source)
+		else:
+			print "***"+logEty+"***"
+			self.ops[logEty]()
+		conn.close()
+
 	def __send(self, msg):
 		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		sock.connect(('127.0.0.1', 5005))
+		sock.connect(self.sendingAddr)
 		sock.send(msg)
 		sock.close()
 
@@ -59,47 +76,36 @@ class App:
 		if len(path) > 0:
 			self.Btn_selectImg.destroy()
 			self.img = cv2.imread(path)
+			self.image_source = path
+			self.__send("PATH:"+self.image_source)
 			self.__showImg()
 			return True
 		return False
 
+	def __preparePanel(self):
+		self.Btn_invite = Button(self.master, text='invite', height=5, width=15, bg='indian red', command=lambda: self.__invite())
+		self.Btn_invite.grid(row=0,column=1)
+
+		self.Btn_bright = Button(self.master, text='bright', height=5, width=15, bg='indian red', command=lambda: self.__send('bright'))
+		self.Btn_bright.grid(row=1,column=1)
+
+		self.Btn_saturate = Button(self.master, text='saturate', height=5, width=15, bg='indian red', command=lambda: self.__send('saturate'))
+		self.Btn_saturate.grid(row=2,column=1)
+
+		self.Btn_blur = Button(self.master, text='blur', height=5, width=15, bg='indian red', command=lambda: self.__send('blur'))
+		self.Btn_blur.grid(row=3,column=1)
+
+		self.Btn_rotate = Button(self.master, text='rotate', height=5, width=15, bg='indian red', command=lambda: self.__send('rotate'))
+		self.Btn_rotate.grid(row=4,column=1)
+
+		self.Btn_contrast = Button(self.master, text='contrast', height=5, width=15, bg='indian red', command=lambda: self.__send('contrast'))
+		self.Btn_contrast.grid(row=5,column=1)
+
 	def __start(self):
 		flag = self.__selectImg()
 		if flag:
-			self.Btn_invite = Button(self.master, text='invite', height=5, width=15, bg='indian red', command=lambda: self.__invite())
-			self.Btn_invite.grid(row=0,column=1)
-
-			self.Btn_bright = Button(self.master, text='bright', height=5, width=15, bg='indian red', command=lambda: self.__send('bright'))
-			self.Btn_bright.grid(row=1,column=1)
-
-			self.Btn_saturate = Button(self.master, text='saturate', height=5, width=15, bg='indian red', command=lambda: self.__send('saturate'))
-			self.Btn_saturate.grid(row=2,column=1)
-
-			self.Btn_blur = Button(self.master, text='blur', height=5, width=15, bg='indian red', command=lambda: self.__send('blur'))
-			self.Btn_blur.grid(row=3,column=1)
-
-			self.Btn_rotate = Button(self.master, text='rotate', height=5, width=15, bg='indian red', command=lambda: self.__send('rotate'))
-			self.Btn_rotate.grid(row=4,column=1)
-
-			self.Btn_contrast = Button(self.master, text='contrast', height=5, width=15, bg='indian red', command=lambda: self.__send('contrast'))
-			self.Btn_contrast.grid(row=5,column=1)
-			# self.Btn_invite = Button(self.master, text='invite', height=5, width=15, bg='indian red', command=lambda: self.__invite())
-			# self.Btn_invite.grid(row=0,column=1)
-
-			# self.Btn_bright = Button(self.master, text='bright', height=5, width=15, bg='indian red', command=lambda: self.__bright())
-			# self.Btn_bright.grid(row=1,column=1)
-
-			# self.Btn_saturate = Button(self.master, text='saturate', height=5, width=15, bg='indian red', command=lambda: self.__saturate())
-			# self.Btn_saturate.grid(row=2,column=1)
-
-			# self.Btn_blur = Button(self.master, text='blur', height=5, width=15, bg='indian red', command=lambda: self.__blur())
-			# self.Btn_blur.grid(row=3,column=1)
-
-			# self.Btn_rotate = Button(self.master, text='rotate', height=5, width=15, bg='indian red', command=lambda: self.__rotate())
-			# self.Btn_rotate.grid(row=4,column=1)
-
-			# self.Btn_contrast = Button(self.master, text='contrast', height=5, width=15, bg='indian red', command=lambda: self.__contrast())
-			# self.Btn_contrast.grid(row=5,column=1)
+			self.__preparePanel()
+			
 
 	def __showImg(self):
 		displayImg = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)

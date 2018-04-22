@@ -24,6 +24,8 @@ func main() {
     flag.IntVar(&node.ID, "id", 0, "specify the node id")
     // command line input node addr
     flag.StringVar(&node.addr, "addr", "127.0.0.1:8080", "specify the node address")
+    flag.StringVar(&node.localrecAddr, "listenAddr", "127.0.0.1:5050", "listening address")
+    flag.StringVar(&node.localsendAddr, "sendAddr", "127.0.0.1:5051", "sending address")
     // parse command line input
     flag.Parse()
     // initialized tag of the node {id, timestamp=0}
@@ -37,7 +39,9 @@ func main() {
     // put itself in the map
     node.mem_list[node.ID] = MemListEntry{Addr: node.addr, Heartbeat: node.heartbeat, Tag: node.tag, Timestamp: time.Now().UnixNano(), Active: true}
 
-    go node.localConnection("127.0.0.1:5005")
+    //fmt.Println("initialize node", node.mem_list)
+    node.Image_path = ""
+    go node.localConnection(node.localrecAddr)
     //listening thread
     go node.server(done)
     //user input thread
