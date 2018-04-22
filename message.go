@@ -57,7 +57,7 @@ func (n *Node) handleMsg(msg Message){
             n.tag.Time_stamp = msg.Tag.Time_stamp
             n.log = initLog(msg.Tag.Time_stamp)
             targetId := msg.Tag.ID
-            ／／fmt.Println("message receive", msg)
+            //fmt.Println("message receive", msg)
             n.joinGroup(msg.Mem_list, targetId)
         case PUBLIC:
             n.checkPeers(msg.Mem_list)
