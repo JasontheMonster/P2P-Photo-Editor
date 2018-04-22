@@ -4,6 +4,7 @@ import (
     "net"
     "fmt"
     "strings"
+    "os"
 )
 
 
@@ -39,6 +40,7 @@ func (n *Node) handleClient(conn net.Conn) {
     }
 
     s := string(buf[:relen])
+
     if (strings.HasPrefix(s,"invite")) {
         s = strings.TrimPrefix(s,"invite")
         fmt.Println(s)
@@ -48,7 +50,9 @@ func (n *Node) handleClient(conn net.Conn) {
         s = strings.TrimPrefix(s, "PATH:")
         fmt.Println("this is the image path", s)
         n.Image_path = s
-    }else{
+    } else if (strings.HasPrefix(s, "quit")) {
+        os.Exit(0)
+    } else {
         msg := n.createDataMessage(PUBLIC, s)
         chans[msg.Ety.Time_stamp] = make(chan bool)
         n.updateToAll(msg, chans[msg.Ety.Time_stamp])

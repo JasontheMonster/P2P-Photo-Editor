@@ -68,6 +68,7 @@ class App:
 		sock.close()
 
 	def __quit(self):
+		self.master.destroy() # close tne window
 		self.isAlive = False
 		self.__send('quit')
 

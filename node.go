@@ -34,9 +34,6 @@ func (n *Node) broadcast(msg Message) {
 // send invitation to new peer (string destination address)
 func (n *Node) invite(dest string) {
     fmt.Printf("\tinviting %s\n", dest)
-    for len(n.mem_list) == 0{
-
-    }
     //fmt.Println("before prepare message", n.mem_list)
     inv := n.createMessage(INVITE, "", n.mem_list)
 

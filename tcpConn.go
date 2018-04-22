@@ -16,7 +16,7 @@ func (n *Node) connect_receive_image(addr string){
 	//connect to the inviter
 	connection, err := net.Dial("tcp", addr)
 	if err != nil{
-		fmt.Println("addr missing")
+		fmt.Println("addr missing", addr)
 	}
 	defer connection.Close()
 	fmt.Println("connected to server, start receive file name and size")

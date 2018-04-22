@@ -17,6 +17,7 @@ const UPDATEINFO 	= 7
 const UPDATEREQUEST = 8
 const IMAGE 		= 9
 
+const QUIT = 10
 
 const TFAIL = 5 * 1000000000
 const TCLEANUP = 20 * 1000000000
