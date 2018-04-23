@@ -34,13 +34,13 @@ func (n *Node) broadcast(msg Message) {
 // send invitation to new peer (string destination address)
 func (n *Node) invite(dest string) {
     fmt.Printf("\tinviting %s\n", dest)
-    //fmt.Println("before prepare message", n.mem_list)
+    fmt.Println("before prepare message", n.mem_list)
     inv := n.createMessage(INVITE, "", n.mem_list)
 
     //start listening threads
     go n.ImageTransferListener()
 
-    //fmt.Println("after prepare message", inv)
+    fmt.Println("after prepare message", inv)
     send(dest, inv)
 }
 
@@ -114,11 +114,13 @@ func (n *Node) sendHeartbeat(done chan bool) {
         }
 
         for id, entry := range n.mem_list {
-            if (now - entry.Timestamp > TCLEANUP) {
-                n.delNode(id)
-            } else if (now - entry.Timestamp > TFAIL) {
-                n.mem_list[id].deactiveNode()
-            }
+            if (id != n.ID) {
+                if (now - entry.Timestamp > TCLEANUP) {
+                    n.delNode(id)
+                } else if (now - entry.Timestamp > TFAIL) {
+                    n.mem_list[id].deactiveNode()
+                }
+            }   
         }
     }
     done <- true

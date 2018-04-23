@@ -4,6 +4,7 @@ import (
 	"sync"
 	"flag"
     "time"
+    "fmt"
 )
 
 var (
@@ -48,6 +49,7 @@ func main() {
     go node.userInput(done)
     // heartbeat thread
     go node.sendHeartbeat(done)
+    fmt.Println(node)
     // wait for threads to finish
     for i := 0; i < 3; i++{
         <- done
