@@ -73,8 +73,8 @@ func (n *Node) updateToAll(msg Message, ack chan bool){
     if n.voted {
         acks = 0
         decs = 1
-        n.voted = true
     }
+    n.voted = true
         
     for (acks < len(n.mem_list)/2 + 1) && (decs < len(n.mem_list)/2 + 1){
         if <- ack {
@@ -90,7 +90,10 @@ func (n *Node) updateToAll(msg Message, ack chan bool){
         n.log.append(msg.Ety)
         go n.sendToFront(msg.Ety.Msg)
         commit := n.createMessage(COMMIT, msg.Ety.Msg, make(map[int]MemListEntry))
+        n.voted = false
         n.broadcast(commit)
+    } else {
+        n.voted = false
     }
     delete(chans, msg.Tag.Time_stamp)
 }
