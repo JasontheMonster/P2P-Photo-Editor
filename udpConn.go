@@ -13,13 +13,13 @@ func send(addr string, msg Message){
 	udpAddr,err1 := net.ResolveUDPAddr("udp4", addr)
 	if err1 != nil {
 		fmt.Println("Err getting addr")
-		log.Fatal(err1)
+		//log.Fatal(err1)
 	}
 
 	conn,err2 := net.DialUDP("udp", nil, udpAddr)
 	if err2 != nil {
 		fmt.Println("Err dialing.")
-		log.Fatal(err2)
+		//log.Fatal(err2)
 	}
 	defer conn.Close()
 
