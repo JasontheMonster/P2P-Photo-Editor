@@ -77,10 +77,16 @@ func (n *Node) updateToAll(msg Message, ack chan bool){
     n.voted = true
         
     for (acks < len(n.mem_list)/2 + 1) && (decs < len(n.mem_list)/2 + 1){
-        if <- ack {
-            acks += 1
-        } else{
-            decs += 1
+        select {
+        case res := <-ack:
+            if res {
+                acks += 1
+            } else {
+                decs += 1
+            }
+        case <-time.After(1 * time.Second):
+            fmt.Println("timeout 2")
+            break
         }
     }
 
