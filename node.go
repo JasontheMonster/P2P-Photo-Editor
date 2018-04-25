@@ -75,8 +75,14 @@ func (n *Node) updateToAll(msg Message, ack chan bool){
         decs = 1
     }
     n.voted = true
-        
-    for (acks < len(n.mem_list)/2 + 1) && (decs < len(n.mem_list)/2 + 1){
+    
+    quorumSize := len(n.mem_list)/2
+    if len(n.mem_list) % 2 != 0{
+        quorumSize += 1
+    }
+    
+
+    for (acks < quorumSize) && (decs < quorumSize){
         select {
         case res := <-ack:
             if res {
@@ -84,8 +90,8 @@ func (n *Node) updateToAll(msg Message, ack chan bool){
             } else {
                 decs += 1
             }
-        case <-time.After(1 * time.Second):
-            fmt.Println("timeout 2")
+        case <-time.After(3 * time.Second):
+            fmt.Println("timeout")
             break
         }
     }
