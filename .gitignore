@@ -14,6 +14,6 @@
 .glide/
 
 # Python
-app/*.pyc
+/app/*.pyc
 
 
