@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"os"
 	"io"
-	"math/rand"
+	// "math/rand"
 )
 
 const BUFFERSIZE = 1024

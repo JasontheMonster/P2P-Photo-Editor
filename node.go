@@ -103,7 +103,7 @@ func (n *Node) updateToAll(msg Message, ack chan bool){
         fmt.Printf("Commited: %s\n", msg.Ety.Msg)
         n.tag.Time_stamp += 1
         n.log.append(msg.Ety)
-        go n.sendToFront(msg.Ety.Msg)
+        n.applyLog()
         commit := n.createMessage(COMMIT, msg.Ety.Msg, make(map[int]MemListEntry))
         n.voted = false
         n.broadcast(commit)
