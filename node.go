@@ -76,13 +76,16 @@ func (n *Node) updateToAll(msg Message, ack chan bool){
     }
     n.voted = true
     
-    quorumSize := len(n.mem_list)/2
-    if len(n.mem_list) % 2 != 0{
-        quorumSize += 1
+    quorumSize := 0
+    for _,mem := range n.mem_list {
+        if mem.Active {
+            quorumSize += 1
+        }
     }
-    
 
-    for (acks < quorumSize) && (decs < quorumSize){
+    quorumSize = (quorumSize + 1) / 2
+    
+    for (acks < quorumSize) && (decs < len(n.mem_list)-quorumSize){
         select {
         case res := <-ack:
             if res {
