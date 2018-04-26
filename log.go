@@ -7,6 +7,7 @@ type Entry struct {
 }
 
 type Log struct {
+	Last_applied 	int
 	Time_stamp		int
 	Entries			[]Entry
 }
@@ -19,7 +20,7 @@ type HoldBackEty struct {
 //initialize log 
 func initLog(ts int) Log {
 	var ety []Entry
-	return Log{Time_stamp: ts, Entries: ety}
+	return Log{Last_applied: 0, Time_stamp: ts, Entries: ety}
 }
 
 // append entry to log and update time
@@ -43,4 +44,11 @@ func (n *Node) checkLog(tag Tag) {
 		req := n.createMessage(UPDATEREQUEST, "", make(map[int]MemListEntry))
         send(n.mem_list[tag.ID].Addr, req)
 	}
+}
+
+func (n *Node) applyLog() {
+	for i := n.log.Last_applied; i < n.log.Time_stamp; i++ {
+		n.sendToFront(n.log.Entries[i].Msg)
+	}
+	n.log.Last_applied = n.log.Time_stamp
 }
