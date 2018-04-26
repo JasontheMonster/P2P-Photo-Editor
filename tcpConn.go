@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"os"
 	"io"
+	"math/rand"
 )
 
 const BUFFERSIZE = 1024
@@ -38,11 +39,13 @@ func (n *Node) connect_receive_image(addr string){
 	fmt.Println("start receiving file: ", fileName, " with size: ", fileSize)
 	//create a new file descripter
 	//create tmp disk holder
-	path := "/tmp/image_data/"
-	if _, err := os.Stat("/tmp/image_data/"); os.IsNotExist(err) {
-    	os.Mkdir("/tmp/image_data/", os.ModePerm)
-	}
-	newFile, err := os.Create(path+fileName)
+	//path := "/tmp/image_data/"
+	//if _, err := os.Stat("/tmp/image_data/"); os.IsNotExist(err) {
+    	//os.Mkdir("/tmp/image_data/", os.ModePerm)
+	//}
+	dir, _ := os.Getwd() 
+	path := dir + "/logs/" + modify_filename(fileName)
+	newFile, err := os.Create(path)
 	if err != nil{
 		panic(err)
 	}
@@ -66,10 +69,16 @@ func (n *Node) connect_receive_image(addr string){
 	}
 
 	fmt.Println("Received!")
-	n.sendToFront("Image:"+"/tmp/image_data/"+fileName)
+	n.Image_path = path
+	n.sendToFront("Image:"+path)
 
 }
+func modify_filename(filename string) string{
+	filenameRaw := strings.Split(filename, ".")
+	newFilename := filenameRaw[0] + strconv.Itoa(rand.Intn(10000)) + "." + filenameRaw[1]
+	return newFilename
 
+}
 //fill the string with ":"  to certain length
 func fillString(retunString string, toLength int) string {
 	for {
@@ -119,6 +128,8 @@ func (n *Node) handleImage(conn net.Conn, finish_image chan bool){
 	for n.Image_path == ""{
 
 	}
+
+	fmt.Println("This is the path I send", n.Image_path)
 	file, err := os.Open(n.Image_path)
 	if err != nil {
 		fmt.Println(err)

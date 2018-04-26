@@ -50,7 +50,9 @@ func (n *Node) handleClient(conn net.Conn) {
         s = strings.TrimPrefix(s, "PATH:")
         fmt.Println("this is the image path", s)
         n.Image_path = s
-    } else if (strings.HasPrefix(s, "quit")) {
+    } else if (strings.HasPrefix(s, "quit")){
+        name:= os.Remove(n.Image_path)
+        fmt.Println("remove file", name)
         os.Exit(0)
     } else {
         msg := n.createDataMessage(PUBLIC, s)
