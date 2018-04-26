@@ -99,7 +99,7 @@ func (n *Node) updateToAll(msg Message, ack chan bool){
         }
     }
 
-    if acks >= len(n.mem_list)/2 + 1 {
+    if acks >= quorumSize {
         fmt.Printf("Commited: %s\n", msg.Ety.Msg)
         n.tag.Time_stamp += 1
         n.log.append(msg.Ety)
