@@ -75,7 +75,7 @@ func (n *Node) connect_receive_image(addr string){
 }
 func modify_filename(filename string) string{
 	filenameRaw := strings.Split(filename, ".")
-	newFilename := filenameRaw[0] + strconv.Itoa(rand.Intn(10000)) + "." + filenameRaw[1]
+	newFilename := filenameRaw[0] + "1" + "." + filenameRaw[1]
 	return newFilename
 
 }
