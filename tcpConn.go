@@ -71,6 +71,7 @@ func (n *Node) connect_receive_image(addr string){
 	fmt.Println("Received!")
 	n.Image_path = path
 	n.sendToFront("Image@"+path)
+	n.HasImage = true
 
 }
 func modify_filename(filename string) string{

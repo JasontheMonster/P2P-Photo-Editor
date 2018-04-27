@@ -20,6 +20,7 @@ type Node struct {
     localsendAddr   string
     localrecAddr    string
     Image_path  string
+    HasImage    bool
 }
 
 // Send messages to everyone in the group
