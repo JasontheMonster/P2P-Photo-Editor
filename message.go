@@ -31,6 +31,11 @@ func (n *Node) createMessageWithLog(Kind int, info string, updateinfo[]Entry) Me
     return msg
 }
 
+func (n *Node) createUpdateRequest() Message {
+    msg := n.createMessage(UPDATEREQUEST, "", make(map[int]MemListEntry))
+    msg.Tag.Time_stamp = n.log.Time_stamp
+    return msg
+}
 
 // data message's tag is current tag + 1
 func (n *Node) createDataMessage(Kind int, info string) Message {
@@ -45,7 +50,7 @@ func (n *Node) commit(msg Message) {
         n.log.append(n.holdBack.Ety)
     }
     n.tag.Time_stamp = msg.Tag.Time_stamp 
-    fmt.Printf("Commited: %s\n", n.holdBack.Ety.Msg)
+    fmt.Printf("Commited: %s, %d\n", n.holdBack.Ety.Msg, n.holdBack.Ety.Time_stamp)
     n.applyLog()
 }
 
@@ -55,10 +60,11 @@ func (n *Node) handleMsg(msg Message){
     	case INVITE:
             fmt.Println("\tAccepted invitation.")
             n.tag.Time_stamp = msg.Tag.Time_stamp
-            n.log = initLog(msg.Tag.Time_stamp)
+            n.log = initLog(0)
             targetId := msg.Tag.ID
-            //fmt.Println("message receive", msg)
             n.joinGroup(msg.Mem_list, targetId)
+            req := n.createUpdateRequest()
+            send(n.mem_list[msg.Tag.ID].Addr, req)
         case PUBLIC:
             n.checkPeers(msg.Mem_list)
             n.updateTag(msg)
@@ -79,9 +85,12 @@ func (n *Node) handleMsg(msg Message){
         case COMMIT:
             n.commit(msg)
         case UPDATEINFO:
+            fmt.Println("recv update")
             n.log.updateLog(msg.UpdateInfo)
+            n.applyLog()
             // fmt.Printf("receive update info from %d\n", msg.Tagval.Id)
         case UPDATEREQUEST:
+            fmt.Println("recv request")
             n.sendUpdate(msg.Tag)
             // fmt.Printf("sent update info to %d\n", msg.Tagval.Id)
     }

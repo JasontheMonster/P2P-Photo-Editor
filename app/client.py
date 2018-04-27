@@ -7,6 +7,7 @@ import tkSimpleDialog
 import cv2
 import socket
 import ps
+import os
 import sys
 
 class App:
@@ -28,7 +29,7 @@ class App:
 		self.Btn_selectImg = Button(self.master, text='Select image', width = 50, height=30, bg='indian red', command=lambda: self.__start())
 		self.Btn_selectImg.grid(row=0,column=0)
 		self.Btn_quit = Button(self.master, text='quit', width = 50, height=2, bg='indian red', command=lambda: self.__quit())
-		self.Btn_quit.grid(row=10,column=0)
+		self.Btn_quit.grid(row=9,column=0)
 
 		self.ops = {'blur': self.__blur, 'bright': self.__bright, 'saturate': self.__saturate, 'rotate': self.__rotate, 'contrast': self.__contrast}
 		Thread(target=self.__listener).start()
@@ -37,20 +38,20 @@ class App:
 		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		sock.bind(self.listeningAddr)
 		sock.listen(1)
-		while True:
+		while self.isAlive:
 			conn,_ = sock.accept()
 			logEty = conn.recv(1024)
-			Thread(target=self.__eventHandler, args=(logEty,conn)).start()
-			if not self.isAlive:
+			if logEty == 'quit':
 				break
-			
+			self.__eventHandler(logEty)
+			conn.close()
 		sock.close()
 
-	def __eventHandler(self, logEty, conn):
-		if logEty.split(':')[0] == "Image":
+	def __eventHandler(self, logEty):
+		if logEty.split('@')[0] == "Image":
 				print "receive image from others!!!!"
-				image_path = logEty.split(':')[1]
-				self.img=cv2.imread(image_path)
+				image_path = logEty.split('@')[1].replace("\\","/")
+				self.img = cv2.imread(image_path)
 				self.Btn_selectImg.destroy()
 				self.__showImg()
 				self.__preparePanel()
@@ -58,8 +59,8 @@ class App:
 				self.__send("PATH:"+self.image_source)
 		else:
 			print "***"+logEty+"***"
-			self.ops[logEty]()
-		conn.close()
+			if logEty != 'quit':
+				self.ops[logEty]()
 
 	def __send(self, msg):
 		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -74,6 +75,7 @@ class App:
 
 	def __selectImg(self):
 		path = tkFileDialog.askopenfilename()
+		print path
 		if len(path) > 0:
 			self.Btn_selectImg.destroy()
 			self.img = cv2.imread(path)
@@ -115,7 +117,7 @@ class App:
 		if self.panel is None:
 			self.panel = Label(image=displayImg)
 			self.panel.image = displayImg
-			self.panel.grid(row=0,column=0,rowspan=10)
+			self.panel.grid(row=0,column=0,rowspan=9)
 		else:
 			self.panel.configure(image=displayImg)
 			self.panel.image = displayImg

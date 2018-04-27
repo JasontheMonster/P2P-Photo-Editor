@@ -34,21 +34,16 @@ func (n *Node) broadcast(msg Message) {
 // send invitation to new peer (string destination address)
 func (n *Node) invite(dest string) {
     fmt.Printf("\tinviting %s\n", dest)
-    fmt.Println("before prepare message", n.mem_list)
     inv := n.createMessage(INVITE, "", n.mem_list)
-
     //start listening threads
     go n.ImageTransferListener()
 
-    fmt.Println("after prepare message", inv)
     send(dest, inv)
 }
 
 // Peer to the network
 func (n *Node) joinGroup(mem_list map[int]MemListEntry, targetId int){
-    fmt.Println(mem_list)
     n.checkPeers(mem_list)
-    fmt.Println(mem_list)
     tmp := map[int]MemListEntry{n.ID: n.mem_list[n.ID]}
     //ask for image
     n.connect_receive_image(mem_list[targetId].Addr)
@@ -100,12 +95,13 @@ func (n *Node) updateToAll(msg Message, ack chan bool){
     }
 
     if acks >= quorumSize {
-        fmt.Printf("Commited: %s\n", msg.Ety.Msg)
+        fmt.Printf("Commited: %s, %d\n", msg.Ety.Msg, msg.Ety.Time_stamp)
         n.tag.Time_stamp += 1
         n.log.append(msg.Ety)
         n.applyLog()
-        commit := n.createMessage(COMMIT, msg.Ety.Msg, make(map[int]MemListEntry))
         n.voted = false
+        // n.commit(msg)
+        commit := n.createMessage(COMMIT, msg.Ety.Msg, make(map[int]MemListEntry))
         n.broadcast(commit)
     } else {
         n.voted = false

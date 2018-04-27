@@ -3,7 +3,7 @@ package main
 const MAX_NUM_SERVERS 	= 10
 const MAX_LOG_ENTRY		= 100
 
-const LOG_PATH = "logs/"
+const LOG_PATH = "/logs/"
 
 const INVITE	= 0
 const PUBLIC	= 1

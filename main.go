@@ -46,12 +46,11 @@ func main() {
     //listening thread
     go node.server(done)
     //user input thread
-    go node.userInput(done)
+    // go node.userInput(done)
     // heartbeat thread
     go node.sendHeartbeat(done)
-    fmt.Println(node)
     // wait for threads to finish
-    for i := 0; i < 3; i++{
+    for i := 0; i < 2; i++{
         <- done
     }
 }

@@ -43,7 +43,8 @@ func (n *Node) connect_receive_image(addr string){
     	//os.Mkdir("/tmp/image_data/", os.ModePerm)
 	//}
 	dir, _ := os.Getwd() 
-	path := dir + "/logs/" + modify_filename(fileName)
+	path := dir + LOG_PATH + modify_filename(fileName)
+	// path := modify_filename(fileName)
 	newFile, err := os.Create(path)
 	if err != nil{
 		panic(err)
@@ -69,7 +70,7 @@ func (n *Node) connect_receive_image(addr string){
 
 	fmt.Println("Received!")
 	n.Image_path = path
-	n.sendToFront("Image:"+path)
+	n.sendToFront("Image@"+path)
 
 }
 func modify_filename(filename string) string{
@@ -112,7 +113,6 @@ func (n *Node) ImageTransferListener(){
         }
         go n.handleImage(conn, finish_image)
         x := <- finish_image
-        //fmt.Println(x)
         if x {
         	break
         }
