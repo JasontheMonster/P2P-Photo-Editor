@@ -30,12 +30,12 @@ func send(addr string, msg Message){
 func (n *Node) server(done chan bool){
 	udpAddr,err1 := net.ResolveUDPAddr("udp4", n.addr)
 	if err1 != nil {
-		log.Fatal(err1)
+		fmt.Println("address not found")
 	}
 
 	conn,err2 := net.ListenUDP("udp", udpAddr)
 	if err2 != nil {
-		log.Fatal(err2)
+		fmt.Println("address can't listent")
 	}
 	defer conn.Close()
 
