@@ -20,6 +20,7 @@ type Node struct {
     localsendAddr   string
     localrecAddr    string
     Image_path  string
+    HasImage    bool
 }
 
 // Send messages to everyone in the group
@@ -56,6 +57,7 @@ func (n *Node) joinGroup(mem_list map[int]MemListEntry, targetId int){
 func(n *Node) sendUpdate(tag Tag){
     updateLog := n.log.Entries[tag.Time_stamp:]
     msg := n.createMessageWithLog(UPDATEINFO, "", updateLog)
+    //fmt.Println("update sending to: ", n.mem_list[tag.ID].Addr)
     send(n.mem_list[tag.ID].Addr, msg)
 }
 

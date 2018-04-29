@@ -4,7 +4,6 @@ import (
 	"sync"
 	"flag"
     "time"
-    // "fmt"
 )
 
 var (
@@ -42,6 +41,7 @@ func main() {
 
     //fmt.Println("initialize node", node.mem_list)
     node.Image_path = ""
+    node.HasImage = false
     go node.localConnection(node.localrecAddr)
     //listening thread
     go node.server(done)

@@ -63,15 +63,19 @@ func (n *Node) handleMsg(msg Message){
             n.log = initLog(0)
             targetId := msg.Tag.ID
             n.joinGroup(msg.Mem_list, targetId)
-            req := n.createUpdateRequest()
-            send(n.mem_list[msg.Tag.ID].Addr, req)
+            if n.HasImage{
+                req := n.createUpdateRequest()
+                send(n.mem_list[msg.Tag.ID].Addr, req)
+            }
         case PUBLIC:
             n.checkPeers(msg.Mem_list)
             n.updateTag(msg)
             fmt.Printf("\tRecved: %s\n", msg.Ety.Msg)
         case HEARTBEAT:
-            n.checkPeers(msg.Mem_list)
-            n.checkLog(msg.Tag)
+            if n.HasImage {
+                n.checkPeers(msg.Mem_list)
+                n.checkLog(msg.Tag)
+            }
             fmt.Println("\theartbeat")
         case ACCEPT:
         	fmt.Printf("\tInvite accepted by %d\n", msg.Tag.ID)
