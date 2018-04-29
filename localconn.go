@@ -50,8 +50,10 @@ func (n *Node) handleClient(conn net.Conn) {
         s = strings.TrimPrefix(s, "PATH:")
         fmt.Println("this is the image path", s)
         n.Image_path = s
+        n.HasImage = true
     } else if (strings.HasPrefix(s, "quit")) {
         n.sendToFront("quit")
+        n.HasImage = false
         os.Exit(0)
     } else {
         msg := n.createDataMessage(PUBLIC, s)
