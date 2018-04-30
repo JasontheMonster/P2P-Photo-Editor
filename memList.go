@@ -12,22 +12,17 @@ type MemListEntry struct {
     Active      bool
 }
 
+// delete node in membership list
 func (m MemListEntry) deactiveNode() {
     m.Active = false
 }
 
+// delete node from membership list
 func (n *Node) delNode(id int) {
     delete(n.mem_list, id)
 }
 
-func (n *Node) isAlive(id int) bool {
-    ety, prs := n.mem_list[id]
-    if prs {
-        return true
-    }
-    return ety.Active
-}
-
+// update local membership list by membership list in incoming message
 func (n *Node) checkPeers(memlist map[int]MemListEntry) {
     for id, entry := range memlist{
         if _, isIn := n.mem_list[id]; !isIn {

@@ -1,6 +1,7 @@
 package main
 
 import (
+    "fmt"
 	"sync"
 	"flag"
     "time"
@@ -50,6 +51,7 @@ func main() {
     // heartbeat thread
     go node.sendHeartbeat(done)
     // wait for threads to finish
+    fmt.Println("Up and running")
     for i := 0; i < 2; i++{
         <- done
     }

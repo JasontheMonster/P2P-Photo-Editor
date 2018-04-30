@@ -5,31 +5,37 @@ import (
 )
 
 type Tag struct {
+    // id of the sender
 	ID			int		`json:"id"`
+    // logical timestamp
 	Time_stamp	int 	`json:"time_stamp"`
 }
 
+// construct tag by id and timestamp
 func createTag(id int, ts int) Tag {
 	return Tag{ID: id, Time_stamp: ts}
 }
 
+// compare tag by timestamp
 func (this *Tag) compareTo(other Tag) int {
 	return this.Time_stamp - other.Time_stamp
 }
 
+// repond to an incoming public message
 func (n *Node) updateTag(msg Message) {
 	var rep Message
     tmp := n.tag.compareTo(msg.Tag)
-    if n.voted || tmp > 0 {
+    if n.voted || tmp > 0 { // if already voted or msg has older tag, decline the message
         rep = n.createMessage(ACK, "fuck ya", make(map[int]MemListEntry))
-    } else {
+    } else { // if not voted and msg has newer tag, accept the message
         n.voted = true
         n.holdBack = HoldBackEty{Ety: msg.Ety, Time: time.Now().UnixNano()}
 		rep = n.createDataMessage(ACK, "agreed")
-        if tmp < 0 {
+        if tmp < 0 { // if self is not up to date, request for update
             req := n.createUpdateRequest()
             send(n.mem_list[msg.Tag.ID].Addr, req)
         }
 	}
+    // send the response
 	send(n.mem_list[msg.Tag.ID].Addr, rep)
 }

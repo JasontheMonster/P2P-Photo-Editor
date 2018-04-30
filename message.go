@@ -24,13 +24,14 @@ func (n *Node) createMessage(Kind int, info string, mem_list map[int]MemListEntr
     return msg
 }
 
-// create log file message
+// create message with log file
 func (n *Node) createMessageWithLog(Kind int, info string, updateinfo[]Entry) Message{
     msg := n.createMessage(Kind, info, make(map[int]MemListEntry))
     msg.UpdateInfo = updateinfo
     return msg
 }
 
+// create message with update request
 func (n *Node) createUpdateRequest() Message {
     msg := n.createMessage(UPDATEREQUEST, "", make(map[int]MemListEntry))
     msg.Tag.Time_stamp = n.log.Time_stamp
@@ -44,6 +45,7 @@ func (n *Node) createDataMessage(Kind int, info string) Message {
     return msg
 }
 
+// commit the pending voted update
 func (n *Node) commit(msg Message) {
     n.voted = false
     if (n.tag.compareTo(msg.Tag) == -1) {
@@ -54,10 +56,10 @@ func (n *Node) commit(msg Message) {
     n.applyLog()
 }
 
-//function to handle message
+// function to handle message
 func (n *Node) handleMsg(msg Message){
     switch msg.Kind {
-    	case INVITE:
+    	case INVITE: // when receive an invite
             fmt.Println("\tAccepted invitation.")
             n.tag.Time_stamp = msg.Tag.Time_stamp
             n.log = initLog(0)
@@ -67,35 +69,31 @@ func (n *Node) handleMsg(msg Message){
                 req := n.createUpdateRequest()
                 send(n.mem_list[msg.Tag.ID].Addr, req)
             }
-        case PUBLIC:
+        case PUBLIC: // when receive a public message
             n.checkPeers(msg.Mem_list)
             n.updateTag(msg)
             fmt.Printf("\tRecved: %s\n", msg.Ety.Msg)
-        case HEARTBEAT:
+        case HEARTBEAT: // when receive a heartbeat
             if n.HasImage {
                 n.checkPeers(msg.Mem_list)
                 n.checkLog(msg.Tag)
             }
             fmt.Println("\theartbeat")
-        case ACCEPT:
+        case ACCEPT: // when receive accept from invited node
         	fmt.Printf("\tInvite accepted by %d\n", msg.Tag.ID)
             n.mem_list[msg.Tag.ID] = msg.Mem_list[msg.Tag.ID]
-        // case DECLINE:
-        //     n.updateTag(msg)
-        case ACK:
+        case ACK: // when receive an ack
             if ack, isIn := chans[msg.Ety.Time_stamp]; isIn{
                 ack <- (msg.Ety.Msg == "agreed" )
             }
-        case COMMIT:
+        case COMMIT: // when receive a commit
             n.commit(msg)
-        case UPDATEINFO:
+        case UPDATEINFO: // when receive update info
             fmt.Println("recv update")
             n.log.updateLog(msg.UpdateInfo)
             n.applyLog()
-            // fmt.Printf("receive update info from %d\n", msg.Tagval.Id)
-        case UPDATEREQUEST:
+        case UPDATEREQUEST: // when receive an update request
             fmt.Println("recv request")
             n.sendUpdate(msg.Tag)
-            // fmt.Printf("sent update info to %d\n", msg.Tagval.Id)
     }
 }
