@@ -31,7 +31,7 @@ func (n *Node) updateTag(msg Message) {
         n.voted = true
         n.holdBack = HoldBackEty{Ety: msg.Ety, Time: time.Now().UnixNano()}
 		rep = n.createDataMessage(ACK, "agreed")
-        if tmp < 0 { // if self is not up to date, request for update
+        if tmp < -1 { // if self is not up to date, request for update
             req := n.createUpdateRequest()
             send(n.mem_list[msg.Tag.ID].Addr, req)
         }

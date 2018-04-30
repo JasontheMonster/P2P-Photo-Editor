@@ -101,7 +101,7 @@ func (n *Node) updateToAll(msg Message, ack chan bool){
     // if more than or equal to quorumsize of nodes replied ack
     if acks >= quorumSize {
         // self commit
-        fmt.Printf("Commited: %s, %d\n", msg.Ety.Msg, msg.Ety.Time_stamp)
+        fmt.Printf("Commited by self: %s, %d\n", msg.Ety.Msg, msg.Ety.Time_stamp)
         n.tag.Time_stamp += 1
         n.log.append(msg.Ety)
         n.applyLog()
