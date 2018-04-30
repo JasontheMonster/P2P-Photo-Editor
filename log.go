@@ -27,8 +27,10 @@ func initLog(ts int) Log {
 
 // append entry to log and update time
 func (l *Log) append(ety Entry){
-	l.Time_stamp = ety.Time_stamp
+	mutex.Lock()
+	l.Time_stamp += 1
 	l.Entries = append(l.Entries, ety)
+	mutex.Unlock()
 }
 
 // update logs with recved updatelog
@@ -51,8 +53,11 @@ func (n *Node) checkLog(tag Tag) {
 // send commited log entries to front end
 func (n *Node) applyLog() {
 	fmt.Printf("nts: %d, la: %d, ts: %d\n", n.tag.Time_stamp, n.log.Last_applied, n.log.Time_stamp)
+	mutex.Lock()
 	for i := n.log.Last_applied; i < len(n.log.Entries); i++ {
 		n.sendToFront(n.log.Entries[i].Msg)
+		fmt.Println(n.log.Entries[i])
 		n.log.Last_applied += 1
 	}
+	mutex.Unlock()
 }

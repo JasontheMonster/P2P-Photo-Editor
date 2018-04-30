@@ -2,7 +2,7 @@ all:
 	go build *.go 
 run1:
 	python app/client.py 127.0.0.1:5051 127.0.0.1:5050&
-	go run *.go -id=1 -addr=127.0.0.1:8080
+	go run *.go -id=1 -addr=136.167.206.31:8080
 
 run2:
 	python app/client.py 127.0.0.1:5052 127.0.0.1:5053&
