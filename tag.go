@@ -2,7 +2,7 @@ package main
 
 import (
     "time"
-    "fmt"
+    // "fmt"
 )
 
 type Tag struct {
@@ -31,8 +31,7 @@ func (n *Node) updateTag(msg Message) {
         rep = n.createMessage(ACK, "fuck ya", make(map[int]MemListEntry))
     } else { // if not voted and msg has newer tag, accept the message
         n.voted = true
-        n.holdBack = HoldBackEty{Ety: msg.Ety, Time: time.Now().UnixNano()}
-        fmt.Println(n.holdBack)
+        n.holdBack = time.Now().UnixNano()
 		rep = n.createDataMessage(ACK, "agreed")
         if tmp < -1 { // if self is not up to date, request for update
             req := n.createUpdateRequest()

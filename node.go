@@ -16,7 +16,7 @@ type Node struct {
     tag         Tag                     // tag value
     mem_list    map[int]MemListEntry    // membership list
     voted       bool                    // if current node has voted for a public message
-    holdBack    HoldBackEty             // hold back entry for pre-commit phase
+    holdBack    int64             // hold back time for pre-commit phase
     localsendAddr   string              // tcp address to send to the front end
     localrecAddr    string              // tcp address to receive from the front end
     Image_path  string                  // local path to the chosen image
@@ -133,7 +133,7 @@ func (n *Node) sendHeartbeat(done chan bool) {
 
         // if not reciving commit message for TFAIL time, abort pending voted message
         now = time.Now().UnixNano()
-        if n.voted && (now - n.holdBack.Time > TFAIL) {
+        if n.voted && (now - n.holdBack > TFAIL) {
             n.voted = false
         }
 

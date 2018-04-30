@@ -14,11 +14,6 @@ type Log struct {
 	Entries			[]Entry
 }
 
-type HoldBackEty struct {
-	Ety 	Entry
-	Time 	int64
-}
-
 // initialize log 
 func initLog(ts int) Log {
 	var ety []Entry

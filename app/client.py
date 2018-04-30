@@ -149,7 +149,7 @@ class App:
 	def __blur(self):
 		size = self.img.shape
 		klen = min(size[0],size[1])
-		self.img = ps.bilareralBlur(self.img, klen/10, klen/10)
+		self.img = ps.bilareralBlur(self.img, klen/7, klen/7)
 		self.__showImg()
 
 	def __rotate(self):
