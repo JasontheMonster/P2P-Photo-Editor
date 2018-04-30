@@ -49,10 +49,10 @@ func (n *Node) createDataMessage(Kind int, info string) Message {
 func (n *Node) commit(msg Message) {
     n.voted = false
     if (n.tag.compareTo(msg.Tag) == -1) {
-        n.log.append(n.holdBack.Ety)
+        n.log.append(msg.Ety)
     }
     n.tag.Time_stamp = msg.Tag.Time_stamp 
-    fmt.Printf("Commited: %s, %d\n", n.holdBack.Ety.Msg, n.holdBack.Ety.Time_stamp)
+    fmt.Printf("Commited: %s, %d\n", msg.Ety.Msg, msg.Ety.Time_stamp)
     n.applyLog()
 }
 

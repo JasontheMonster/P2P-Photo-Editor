@@ -2,6 +2,7 @@ package main
 
 import (
     "time"
+    "fmt"
 )
 
 type Tag struct {
@@ -23,6 +24,7 @@ func (this *Tag) compareTo(other Tag) int {
 
 // repond to an incoming public message
 func (n *Node) updateTag(msg Message) {
+    mutex.Lock()
 	var rep Message
     tmp := n.tag.compareTo(msg.Tag)
     if n.voted || tmp > 0 { // if already voted or msg has older tag, decline the message
@@ -30,6 +32,7 @@ func (n *Node) updateTag(msg Message) {
     } else { // if not voted and msg has newer tag, accept the message
         n.voted = true
         n.holdBack = HoldBackEty{Ety: msg.Ety, Time: time.Now().UnixNano()}
+        fmt.Println(n.holdBack)
 		rep = n.createDataMessage(ACK, "agreed")
         if tmp < -1 { // if self is not up to date, request for update
             req := n.createUpdateRequest()
@@ -38,4 +41,5 @@ func (n *Node) updateTag(msg Message) {
 	}
     // send the response
 	send(n.mem_list[msg.Tag.ID].Addr, rep)
+    mutex.Unlock()
 }
