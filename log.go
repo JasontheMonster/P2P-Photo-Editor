@@ -19,7 +19,7 @@ type HoldBackEty struct {
 	Time 	int64
 }
 
-//initialize log 
+// initialize log 
 func initLog(ts int) Log {
 	var ety []Entry
 	return Log{Last_applied: 0, Time_stamp: ts, Entries: ety}
@@ -48,6 +48,7 @@ func (n *Node) checkLog(tag Tag) {
 	}
 }
 
+// send commited log entries to front end
 func (n *Node) applyLog() {
 	fmt.Printf("nts: %d, la: %d, ts: %d\n", n.tag.Time_stamp, n.log.Last_applied, n.log.Time_stamp)
 	for i := n.log.Last_applied; i < len(n.log.Entries); i++ {

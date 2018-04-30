@@ -26,7 +26,7 @@ func send(addr string, msg Message){
 	conn.Write([]byte(b))
 }
 
-//creates listener
+// creates listener
 func (n *Node) server(done chan bool){
 	udpAddr,err1 := net.ResolveUDPAddr("udp4", n.addr)
 	if err1 != nil {

@@ -26,10 +26,10 @@ class App:
 		self.Btn_blur = None
 		self.Btn_rotate = None
 		self.Btn_contrast = None
-		self.Btn_selectImg = Button(self.master, text='Select image', width = 50, height=30, bg='indian red', command=lambda: self.__start())
+		self.Btn_selectImg = Button(self.master, text='Select image', width = 50, height=30, bg='gold', command=lambda: self.__start())
 		self.Btn_selectImg.grid(row=0,column=0)
-		self.Btn_quit = Button(self.master, text='quit', width = 50, height=2, bg='indian red', command=lambda: self.__quit())
-		self.Btn_quit.grid(row=9,column=0)
+		self.Btn_quit = Button(self.master, text='quit', width = 50, height=2, bg='gold', command=lambda: self.__quit())
+		self.Btn_quit.grid(row=6,column=0)
 
 		self.ops = {'blur': self.__blur, 'bright': self.__bright, 'saturate': self.__saturate, 'rotate': self.__rotate, 'contrast': self.__contrast}
 		Thread(target=self.__listener).start()
@@ -52,6 +52,7 @@ class App:
 				print "receive image from others!!!!"
 				image_path = logEty.split('@')[1].replace("\\","/")
 				self.img = cv2.imread(image_path)
+				self.__shrinkImg()
 				self.Btn_selectImg.destroy()
 				self.__showImg()
 				self.__preparePanel()
@@ -79,6 +80,7 @@ class App:
 		if len(path) > 0:
 			self.Btn_selectImg.destroy()
 			self.img = cv2.imread(path)
+			self.__shrinkImg()
 			self.image_source = path
 			self.__send("PATH:"+self.image_source)
 			self.__showImg()
@@ -86,22 +88,22 @@ class App:
 		return False
 
 	def __preparePanel(self):
-		self.Btn_invite = Button(self.master, text='invite', height=5, width=15, bg='indian red', command=lambda: self.__invite())
+		self.Btn_invite = Button(self.master, text='invite', height=6, width=15, bg='gold', command=lambda: self.__invite())
 		self.Btn_invite.grid(row=0,column=1)
 
-		self.Btn_bright = Button(self.master, text='bright', height=5, width=15, bg='indian red', command=lambda: self.__send('bright'))
+		self.Btn_bright = Button(self.master, text='bright', height=6, width=15, bg='gold', command=lambda: self.__send('bright'))
 		self.Btn_bright.grid(row=1,column=1)
 
-		self.Btn_saturate = Button(self.master, text='saturate', height=5, width=15, bg='indian red', command=lambda: self.__send('saturate'))
+		self.Btn_saturate = Button(self.master, text='saturate', height=6, width=15, bg='gold', command=lambda: self.__send('saturate'))
 		self.Btn_saturate.grid(row=2,column=1)
 
-		self.Btn_blur = Button(self.master, text='blur', height=5, width=15, bg='indian red', command=lambda: self.__send('blur'))
+		self.Btn_blur = Button(self.master, text='blur', height=6, width=15, bg='gold', command=lambda: self.__send('blur'))
 		self.Btn_blur.grid(row=3,column=1)
 
-		self.Btn_rotate = Button(self.master, text='rotate', height=5, width=15, bg='indian red', command=lambda: self.__send('rotate'))
+		self.Btn_rotate = Button(self.master, text='rotate', height=6, width=15, bg='gold', command=lambda: self.__send('rotate'))
 		self.Btn_rotate.grid(row=4,column=1)
 
-		self.Btn_contrast = Button(self.master, text='contrast', height=5, width=15, bg='indian red', command=lambda: self.__send('contrast'))
+		self.Btn_contrast = Button(self.master, text='contrast', height=6, width=15, bg='gold', command=lambda: self.__send('contrast'))
 		self.Btn_contrast.grid(row=5,column=1)
 
 	def __start(self):
@@ -109,6 +111,16 @@ class App:
 		if flag:
 			self.__preparePanel()
 			
+	def __shrinkImg(self):
+		h,_ = self.img.shape[:2]
+		max_height = 600
+		# only shrink if img is bigger than required
+		if max_height < h:
+		    # get scaling factor
+		    scaling_factor = max_height / float(h)
+		    # resize image
+		    self.img = cv2.resize(self.img, None, fx=scaling_factor, fy=scaling_factor, interpolation=cv2.INTER_AREA)
+
 
 	def __showImg(self):
 		displayImg = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
@@ -117,7 +129,7 @@ class App:
 		if self.panel is None:
 			self.panel = Label(image=displayImg)
 			self.panel.image = displayImg
-			self.panel.grid(row=0,column=0,rowspan=9)
+			self.panel.grid(row=0,column=0,rowspan=6)
 		else:
 			self.panel.configure(image=displayImg)
 			self.panel.image = displayImg
@@ -151,6 +163,6 @@ class App:
 
 root = Tk()
 root.title("Collaborative Photo Editor")
-root.config(background='light green')
+root.config(background='DarkOrchid1')
 app = App(root)
 root.mainloop()
