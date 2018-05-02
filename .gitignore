@@ -16,4 +16,8 @@
 # Python
 /app/*.pyc
 
+# logs file
+/logs/*.jpg
+/logs/*.png
+
 
