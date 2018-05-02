@@ -48,6 +48,7 @@ func (n *Node) checkLog(tag Tag) {
 // send commited log entries to front end
 func (n *Node) applyLog() {
 	fmt.Printf("nts: %d, la: %d, ts: %d\n", n.tag.Time_stamp, n.log.Last_applied, n.log.Time_stamp)
+	//lock the critical session of incrementing log's lastapplied var
 	mutex.Lock()
 	for i := n.log.Last_applied; i < len(n.log.Entries); i++ {
 		n.sendToFront(n.log.Entries[i].Msg)

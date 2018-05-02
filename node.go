@@ -1,3 +1,4 @@
+//Node class
 package main
 
 import (
@@ -102,11 +103,14 @@ func (n *Node) updateToAll(msg Message, ack chan bool){
     if acks >= quorumSize {
         // self commit
         fmt.Printf("Commited by self: %s, %d\n", msg.Ety.Msg, msg.Ety.Time_stamp)
+        //increment logical time stamp when commited
         n.tag.Time_stamp += 1
+        //add log entry to log
         n.log.append(msg.Ety)
+        //front end rendering
         n.applyLog()
         n.voted = false
-        // broadcast commit message
+        // broadcast commit message to the group
         commit := n.createMessage(COMMIT, msg.Ety.Msg, make(map[int]MemListEntry))
         n.broadcast(commit)
     } else { // abort this update

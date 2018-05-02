@@ -1,3 +1,4 @@
+//Tag has information about node's logical tiimestamp and how to compare them
 package main
 
 import (

@@ -34,6 +34,7 @@ class App:
 		self.ops = {'blur': self.__blur, 'bright': self.__bright, 'saturate': self.__saturate, 'rotate': self.__rotate, 'contrast': self.__contrast}
 		Thread(target=self.__listener).start()
 
+	#local connection to backend
 	def __listener(self):
 		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		sock.bind(self.listeningAddr)
@@ -47,6 +48,7 @@ class App:
 			conn.close()
 		sock.close()
 
+	#handle message send from backend
 	def __eventHandler(self, logEty):
 		if logEty.split('@')[0] == "Image":
 				print "receive image from others!!!!"
@@ -63,6 +65,7 @@ class App:
 			if logEty != 'quit':
 				self.ops[logEty]()
 
+	#send message to frontend
 	def __send(self, msg):
 		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		sock.connect(self.sendingAddr)
@@ -82,6 +85,7 @@ class App:
 			self.img = cv2.imread(path)
 			self.__shrinkImg()
 			self.image_source = path
+			#send image path to backedn
 			self.__send("PATH:"+self.image_source)
 			self.__showImg()
 			return True

@@ -1,3 +1,4 @@
+//class Message: deal with communication protocol
 package main
 
 import (
@@ -48,6 +49,7 @@ func (n *Node) createDataMessage(Kind int, info string) Message {
 // commit the pending voted update
 func (n *Node) commit(msg Message) {
     n.voted = false
+    //only append the log when only have one log entry to commit
     if (n.tag.compareTo(msg.Tag) == -1) {
         n.log.append(msg.Ety)
     }
@@ -61,6 +63,7 @@ func (n *Node) handleMsg(msg Message){
     switch msg.Kind {
     	case INVITE: // when receive an invite
             fmt.Println("\tAccepted invitation.")
+            //synchronous logical timestamp
             n.tag.Time_stamp = msg.Tag.Time_stamp
             n.log = initLog(0)
             targetId := msg.Tag.ID

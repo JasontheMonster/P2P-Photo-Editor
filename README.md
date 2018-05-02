@@ -4,18 +4,10 @@ Implementation of collaborative photo editor based on decentralized architecture
 
 ## Getting Started
 
-### Prerequisites
-
-Install Go and Python 
-
-```
-go to link https://golang.org/dl/ and download
-```
-
-### Run small example
+### Run a client node
 
 
-Build the problem
+Build 
 ```
 make
 ```
@@ -23,7 +15,7 @@ make
 Run a node with id = i
 
 ```
-make run i
+make runi
 ```
 
 
