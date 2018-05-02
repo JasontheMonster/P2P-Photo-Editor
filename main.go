@@ -5,6 +5,7 @@ import (
 	"sync"
 	"flag"
     "time"
+    "os"
 )
 
 var (
@@ -16,6 +17,7 @@ var (
 
 func main() {
     // chanel to mark completion of the process
+
     done := make(chan bool)
     // init node object
     var node Node
