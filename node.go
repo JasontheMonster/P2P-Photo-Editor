@@ -156,21 +156,21 @@ func (n *Node) sendHeartbeat(done chan bool) {
 }
 
 // take user input and make action
-func (n *Node) userInput(done chan bool) {
-    reader := bufio.NewReader(os.Stdin)
-    fmt.Println("Enter Commands: ")
-    for {
-        text,_ := reader.ReadString('\n')
-        text = strings.Replace(text, "\n", "", -1)
-        input := strings.SplitN(text, " ", 2)
-        switch input[0] {
-            case "invite":
-                go n.invite(input[1])
-            case "send":
-                msg := n.createDataMessage(PUBLIC, input[1])
-                chans[msg.Ety.Time_stamp] = make(chan bool)
-                go n.updateToAll(msg, chans[msg.Ety.Time_stamp])
-        }
-    }
-    done <- true
-}
+// func (n *Node) userInput(done chan bool) {
+//     reader := bufio.NewReader(os.Stdin)
+//     fmt.Println("Enter Commands: ")
+//     for {
+//         text,_ := reader.ReadString('\n')
+//         text = strings.Replace(text, "\n", "", -1)
+//         input := strings.SplitN(text, " ", 2)
+//         switch input[0] {
+//             case "invite":
+//                 go n.invite(input[1])
+//             case "send":
+//                 msg := n.createDataMessage(PUBLIC, input[1])
+//                 chans[msg.Ety.Time_stamp] = make(chan bool)
+//                 go n.updateToAll(msg, chans[msg.Ety.Time_stamp])
+//         }
+//     }
+//     done <- true
+// }

@@ -5,7 +5,7 @@ import (
 	"sync"
 	"flag"
     "time"
-    "os"
+    // "os"
 )
 
 var (
@@ -42,14 +42,12 @@ func main() {
     // put itself in the map
     node.mem_list[node.ID] = MemListEntry{Addr: node.addr, Heartbeat: node.heartbeat, Tag: node.tag, Timestamp: time.Now().UnixNano(), Active: true}
 
-    //fmt.Println("initialize node", node.mem_list)
     node.Image_path = ""
     node.HasImage = false
+    // local connection thread
     go node.localConnection(node.localrecAddr)
     //listening thread
     go node.server(done)
-    //user input thread
-    // go node.userInput(done)
     // heartbeat thread
     go node.sendHeartbeat(done)
     // wait for threads to finish

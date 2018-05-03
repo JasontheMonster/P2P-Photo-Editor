@@ -50,7 +50,12 @@ func (n *Node) applyLog() {
 	fmt.Printf("nts: %d, la: %d, ts: %d\n", n.tag.Time_stamp, n.log.Last_applied, n.log.Time_stamp)
 	//lock the critical session of incrementing log's lastapplied var
 	mutex.Lock()
+	// sequentially send log entry to front end
 	for i := n.log.Last_applied; i < len(n.log.Entries); i++ {
+		// take snapshot every 15 log entries
+		if i % MAX_LOG_ENTRY == 0 {
+			n.sendToFront("snapshot")
+		}
 		n.sendToFront(n.log.Entries[i].Msg)
 		fmt.Println(n.log.Entries[i])
 		n.log.Last_applied += 1

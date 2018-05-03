@@ -166,7 +166,3 @@ func (n *Node) handleImage(conn net.Conn, finish_image chan bool){
 	finish_image <- true 
 	return
 }
-
-
-
-

@@ -3,14 +3,11 @@ package main
 
 import (
     "time"
-    // "fmt"
 )
 
 type Tag struct {
-    // id of the sender
-	ID			int		`json:"id"`
-    // logical timestamp
-	Time_stamp	int 	`json:"time_stamp"`
+	ID			int		`json:"id"`            // id of the sender
+	Time_stamp	int 	`json:"time_stamp"`    // logical timestamp
 }
 
 // construct tag by id and timestamp

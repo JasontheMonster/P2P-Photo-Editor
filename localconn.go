@@ -7,9 +7,8 @@ import (
     "os"
 )
 
-
+// listener to fron end
 func (n *Node) localConnection(addr string){
-
 	tcpAddr, err := net.ResolveTCPAddr("tcp4", addr)
     if err != nil{
         fmt.Println("User not found")
@@ -28,9 +27,9 @@ func (n *Node) localConnection(addr string){
         go n.handleClient(conn)
 
     } 
-    //done <- true
 }
 
+// handle msg from front end
 func (n *Node) handleClient(conn net.Conn) {
     defer conn.Close()
     buf := make([]byte, 1024)
@@ -44,7 +43,6 @@ func (n *Node) handleClient(conn net.Conn) {
     if (strings.HasPrefix(s,"invite")) {
         s = strings.TrimPrefix(s,"invite")
         fmt.Println(s)
-        //fmt.Println("receive front end invite and send", n.mem_list)
         n.invite(s)
     } else if (strings.HasPrefix(s, "PATH")){
         s = strings.TrimPrefix(s, "PATH:")
@@ -62,6 +60,7 @@ func (n *Node) handleClient(conn net.Conn) {
     }
 }
 
+// send to front end
 func (n *Node) sendToFront(logEty string) {
     conn,_ := net.Dial("tcp", n.localsendAddr)
     defer conn.Close()

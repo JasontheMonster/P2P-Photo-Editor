@@ -1,7 +1,7 @@
 package main
 
 const MAX_NUM_SERVERS 	= 10
-const MAX_LOG_ENTRY		= 100
+const MAX_LOG_ENTRY		= 15
 
 const LOG_PATH = "/logs/"
 

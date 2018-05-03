@@ -12,6 +12,7 @@ import sys
 
 class App:
 	def __init__(self,master):
+		self.ver = 0
 		self.isAlive = True
 		self.master = master
 		self.panel = None
@@ -31,7 +32,7 @@ class App:
 		self.Btn_quit = Button(self.master, text='quit', width = 50, height=2, bg='gold', command=lambda: self.__quit())
 		self.Btn_quit.grid(row=6,column=0)
 
-		self.ops = {'blur': self.__blur, 'bright': self.__bright, 'saturate': self.__saturate, 'rotate': self.__rotate, 'contrast': self.__contrast}
+		self.ops = {'snapshot': self.__snapshot, 'blur': self.__blur, 'bright': self.__bright, 'saturate': self.__saturate, 'rotate': self.__rotate, 'contrast': self.__contrast}
 		Thread(target=self.__listener).start()
 
 	#local connection to backend
@@ -73,6 +74,7 @@ class App:
 		sock.close()
 
 	def __quit(self):
+		self.__snapshot() # write image to disk
 		self.master.destroy() # close tne window
 		self.isAlive = False
 		self.__send('quit')
@@ -90,6 +92,12 @@ class App:
 			self.__showImg()
 			return True
 		return False
+
+	def __snapshot(self):
+		path = os.getcwd().replace("\\","/") + "/logs/snapshot" + str(self.ver) + ".jpg"
+		print path
+		cv2.imwrite(path, self.img)
+		self.ver += 1
 
 	def __preparePanel(self):
 		self.Btn_invite = Button(self.master, text='invite', height=6, width=15, bg='gold', command=lambda: self.__invite())

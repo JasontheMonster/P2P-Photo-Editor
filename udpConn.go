@@ -1,4 +1,4 @@
-//P2P network is build on edp connection
+//P2P network is build on udp connection
 package main 
 
 import (
