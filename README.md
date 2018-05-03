@@ -1,4 +1,4 @@
-# Project Title
+# Collaborative Photo Editor
 
 Implementation of collaborative photo editor based on decentralized architecture
 
